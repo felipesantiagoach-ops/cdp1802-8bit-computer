@@ -1,0 +1,33 @@
+% ----------------------
+  \chapter{Introducción}
+% ----------------------
+
+\label{C:introduccion}
+
+El siguiente trabajo se desarrolla en el marco de la materia \entreComillas{Proyecto y diseño electrónico} de la carrera de ingeniería electrónica de la Universidad Nacional de Misiones, en la cual se busca proyectar y diseñar circuitos electrónicos que involucren las competencias desarrolladas durante el cursado de la carrera. 
+El objetivo principal del presente documento es contemplar todos los conceptos y conocimientos utilizados en el proyecto, diseño e implementación de una microcomputadora de uso general basada en un microprocesador específico con diferentes funcionalidades como ser conversor analógico-digital y comunicación UART, entre otras. Teniendo en cuenta la búsqueda de la integración de los conceptos adquiridos en la carrera, el desarrollo de una computadora de uso general toma una relevancia considerable ya que involucra ampliamente los conceptos estudiados, como por ejemplo: el diseño y construcción de fuentes de alimentación, circuitos analógicos, circuitos digitales, acondicionamiento de señal, programación en lenguaje ensamblador, entre otros. 
+
+Motivados por los avances obtenidos gracias a los primeros microprocesadores y con la disponibilidad de las herramientas tecnológicas de la actualidad, se plantea el diseño de una computadora de uso general basada en uno de los primeros microprocesadores: \textbf{El CDP1802, primer microprocesador de la tecnología CMOS}. Se busca comprender su principio de funcionamiento, arquitectura e instrucciones de operación para poder integrar en un circuito las diferentes funcionalidades requeridas y establecer un mecanismo por el cual incorporar tecnologías más modernas como ser las tarjetas SD o FRAM. 
+
+Durante el desarrollo del trabajo se presentarán principios de funcionamiento, bibliografía involucrada, diseño de esquemas circuitales, construcción de placas de circuito impreso (PCB), diseño de programas y pruebas de funcionamiento asociadas a los circuitos confeccionados. Para que el análisis y comprensión de las topologías planteadas sean simples, el desarrollo del trabajo incrementa progresivamente la complejidad de los circuitos implementados. 
+
+
+\section{Objetivos}
+\paragraph{Objetivo general} La idea básica del proyecto es diseñar una microcomputadora basada en el microprocesador CDP1802 que esté dotada de capacidad de memoria no volátil (ROM) y memorias volátiles (RAM) para poder ejecutar funciones específicas y pueda conectarse mediante un puerto a un terminal (notebook o computadora de escritorio) y utilizar la pantalla y el teclado de la misma como interfaz de entrada y salida, para poder así usar el terminal como método principal para la comunicación entre el usuario y la computadora.
+
+\begin{itemize}
+\item Diseñar, proyectar y seleccionar los componentes necesarios para la microcomputadora, entre los más importantes, el microprocesador, la memoria de programa, memoria de datos, buses de comunicación, integrados, etc. Para ello debe realizarse el estudio adecuado de mercado y de tecnologías ya existentes para implementar el sistema.
+
+ \item Realizar un diagrama esquemático de un sistema mínimo, de preferencia de manera manual (lápiz y papel), para así obtener un acercamiento general de los elementos mínimos e indispensables para lograr el funcionamiento de la microcomputadora e introducir a los alumnos en el diseño de la misma. 
+\item Proyectar e implementar como primera aproximación el sistema mínimo de microcomputadora donde solamente se utilice el microprocesador, una memoria de programa y los dispositivos necesarios para el funcionamiento básico (resonadores, integrados, etc.). Para ello se debe realizar un estudio de la bibliografía correspondiente sobre la arquitectura del microprocesador y de las instrucciones en lenguaje ensamblador para el funcionamiento del mismo.
+
+
+ 
+\item Diseñar y proyectar una fuente de alimentación lineal para energizar la microcomputadora, cuyo suministro sea la red de alimentación (220~V/50~Hz) y analizar la necesidad de utilizar un suministro alternativo (ej. baterías). 
+
+\item Partiendo del sistema mínimo, proyectar una microcomputadora que esté dotada de memorias tanto ROM como RAM para su funcionamiento, un bus de puerto serie (Protocolo UART), un puerto paralelo de 8 bits, un conversor analógico-digital de 8 bits, debe contener una memoria SD-CARD para la grabación de algún programa que se requiera y analizar el uso de memorias F-RAM.
+
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

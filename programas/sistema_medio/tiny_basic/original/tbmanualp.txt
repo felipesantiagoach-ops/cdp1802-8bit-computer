@@ -1,0 +1,3122 @@
+
+
+
+
+
+
+                 11     888888     000000     222222
+                111    88    88   00    00   22    22
+                 11    88    88   00    00         22
+                 11     888888    00    00     22222
+                 11    88    88   00    00    22 
+                 11    88    88   00    00   22 
+                1111    888888     000000    22222222
+
+
+                TTTTTTTT   IIII   NN    NN   YY    YY
+                   TT       II    NNN   NN   YY    YY
+                   TT       II    NNNN  NN    YY  YY
+                   TT       II    NN NN NN     YYYY
+                   TT       II    NN  NNNN      YY
+                   TT       II    NN   NNN      YY
+                   TT      IIII   NN    NN      YY
+
+
+          BBBBBBB       AA       SSSSSS    IIII    CCCCCC
+          BB    BB     AAAA     SS    SS    II    CC    CC
+          BB    BB    AA  AA    SS          II    CC
+          BBBBBBB    AA    AA    SSSSSS     II    CC
+          BB    BB   AAAAAAAA         SS    II    CC
+          BB    BB   AA    AA   SS    SS    II    CC    CC
+          BBBBBBB    AA    AA    SSSSSS    IIII    CCCCCC
+
+
+
+                   TMSI Tiny BASIC for the 1802
+
+                            User Manual
+
+
+                       Copyright (C) 1981 by
+
+                   Technical Micro Systems, Inc.
+                          366 Cloverdale
+                        Ann Arbor, MI 48105
+
+                          (313) 994-0784
+
+
+
+
+3/31/2002: This manual is being provided with the permission of its
+original author, Lee A. Hart, for historical and educational use. It
+may be used without charge for any non-commercial purpose. Technical
+Micro Systems is out of business, so the above address and phone
+number are not valid. To contact the author, write to Lee A. Hart,
+814 8th Ave. N, Sartell MN 56366, or email <leeahart@earthlink.net>.
+
+
+
+
+
+
+                         TABLE OF CONTENTS
+
+
+
+     1. INTRODUCTION . . . . . . . . . . . . . . . . . . . .  1
+
+     2. OVERVIEW . . . . . . . . . . . . . . . . . . . . . .  2
+
+     3. HARDWARE REQUIREMENTS  . . . . . . . . . . . . . . .  3
+
+     4. INSTALLATION . . . . . . . . . . . . . . . . . . . .  4
+
+     5. CHECKOUT . . . . . . . . . . . . . . . . . . . . . .  5
+           In Case of Difficulty . . . . . . . . . . . . . .  5
+
+     6. TINY BASIC . . . . . . . . . . . . . . . . . . . . .  7
+           The Command Mode  . . . . . . . . . . . . . . . .  8
+           The Execute Mode  . . . . . . . . . . . . . . . .  9
+           Error Messages  . . . . . . . . . . . . . . . . .  9
+           Numbers . . . . . . . . . . . . . . . . . . . . .  9
+           Variables . . . . . . . . . . . . . . . . . . . . 10
+           Expressions . . . . . . . . . . . . . . . . . . . 10
+           Statements  . . . . . . . . . . . . . . . . . . . 11
+           Functions . . . . . . . . . . . . . . . . . . . . 18
+
+     7. THE MACHINE-LEVEL MONITOR  . . . . . . . . . . . . . 21
+           Operation . . . . . . . . . . . . . . . . . . . . 21
+           Examine Memory (?M) . . . . . . . . . . . . . . . 22
+           Change Memory (!M)  . . . . . . . . . . . . . . . 23
+           Move Memory (?M --- !M) . . . . . . . . . . . . . 24
+           Examine Registers (?R)  . . . . . . . . . . . . . 24
+           Run Registers ($R)  . . . . . . . . . . . . . . . 26
+           Run Program ($P)  . . . . . . . . . . . . . . . . 27
+
+     8. INTERNAL OPERATION . . . . . . . . . . . . . . . . . 28
+           Memory Allocation . . . . . . . . . . . . . . . . 28
+           Internal BASIC Program Format . . . . . . . . . . 29
+           Saving a BASIC Program in ROM . . . . . . . . . . 30
+           Register Usage  . . . . . . . . . . . . . . . . . 33
+           User-Accessible Subroutines . . . . . . . . . . . 34
+           Writing USR Functions . . . . . . . . . . . . . . 39
+           USR Function Example  . . . . . . . . . . . . . . 40
+
+     APPENDICES
+           Serial Terminal Interface . . . . . . . . . . .  A-1
+           ASCII Control Codes . . . . . . . . . . . . . .  B-1
+           Error Message Summary . . . . . . . . . . . . .  C-1
+           Formal Definition of Tiny BASIC . . . . . . . .  D-1
+           ASCII/Decimal/Hex Conversions . . . . . . . . .  E-1
+           Tiny BASIC Memory Map . . . . . . . . . . . . .  F-1
+           Tiny BASIC Assembly Listing . . . . . . . . . .  G-1
+
+
+
+
+
+
+
+
+
+
+
+                             CHAPTER 1
+
+                           INTRODUCTION
+
+
+Thank you for your purchase of TMSI(tm) Tiny BASIC. We hope
+you find it a quick and easy way to get familiar with the
+BASYS/1 1802 Microcomputer and apply it to simple applications.
+
+Tiny BASIC originated with the People's Computer Company,
+and was written for the COSMAC microprocessor by Tom
+Pittman of Itty Bitty Computers Company. RCA Corporation
+funded its development, and it is with their permission
+that it has been made available. TMSI Tiny BASIC has all
+the features of regular Tiny BASIC, plus I/O extensions
+and a powerful machine-level monitor. Programs written in
+TMSI Tiny BASIC can also be saved in EPROM so that they
+execute immediately upon power-up.
+
+This program has been extensively tested, and we believe
+it to be free of errors. It does carry our standard 90-day
+warranty (see warranty statement) so if any errors are
+found during the first 90 days, we will correct them free
+of charge.
+
+Good documentation is the key to solid, reliable software.
+Accordingly, it is our policy to supply complete source
+code listings for all TMSI software. Although it increases
+our costs, we feel that it makes the program far more
+useful to you. Please help us continue this policy by
+respecting our copyright notices.
+
+If there are any questions or problems with this product,
+call or write:
+
+
+        TMSI c/o Lee A. Hart
+        814 8th Avenue North
+        Sartell, MN 56377
+        <leeahart@earthlink.net>
+
+(Contact information updated, and valid as of 3/31/2002.)
+
+
+
+
+
+
+
+
+
+
+                                -1-
+
+
+
+
+
+
+
+                             CHAPTER 2
+
+                             OVERVIEW
+
+
+TMSI Tiny BASIC is a simple, high-level language for the BASYS/1 and
+other microcomputers based on the RCA "COSMAC" microprocessor. It
+executes a subset of the popular BASIC language and is unusually
+easy to learn and use. A line editor is provided to enter programs,
+and an extensive set of error checks and messages is available for
+program debugging. For control-oriented applications, TMSI Tiny
+BASIC has a complete set of I/O commands for controlling the
+computer's inputs and outputs without machine language programming.
+A Tiny BASIC program can also be saved in EPROM for dedicated
+applications. It will then be executed immediately upon power-up or
+reset, without the need for any operator input (see chapter 8:
+Internal Operation).
+
+All numbers in Tiny BASIC are integers within the range of -32768
+to +32767. There are 26 named variables (A-Z), and four math
+operators (add, subtract, multiply, and divide). Statements include
+LET, PRINT, INPUT, GOTO, GOSUB, RETURN, IF-THEN, LIST, RUN, and NEW.
+There are two functions; RND for generating a random number, and USR
+for linking to machine-language subroutines.
+
+For advanced users, a machine-level monitor program is included.
+Using the monitor, critical functions can be programmed and debugged
+in machine language, and then called by Tiny BASIC as needed. The
+monitor can examine, change, and move memory; examine and change
+CPU register contents; and execute programs with breakpoints. The
+read and type formats are fully compatible with those used by RCA.
+
+TMSI Tiny BASIC is specifically designed to run in very small
+systems -- consequently, it trades execution speed for low memory
+requirements. All software is contained in a single 4K byte EPROM
+(with 1K bytes available for user programs), and the minimum RAM
+requirement is 256 bytes. A serial ASCII data terminal is needed for
+user inputs and outputs, using the COSMAC's Q and EF4 I/O pins.
+Execution speed is quite slow (approximately 5 lines per second at
+2 MHz), but adequate for many simple applications.
+
+Conventions
+
+Tiny BASIC normally uses only upper-case letters. Commands typed in
+lower-case letters will cause syntax errors. However, lower-case
+letters can be used in REMarks, comments, and PRINT statements.
+
+In this manual, numbers are in decimal unless otherwise noted. <CR>
+means the ASCII "Carriage Return" control code (13 decimal, 0D hex),
+which is the RETURN or ENTER key on you keyboard.
+
+                                -2-
+
+
+
+
+
+                             CHAPTER 3
+
+                       HARDWARE REQUIREMENTS
+
+
+TMSI Tiny BASIC will run in the BASYS/1 microcomputer, or any other
+COSMAC based system that meets the following minimum requirements:
+
+CPU     RCA, Hughes, or Solid State Scientific "COSMAC"
+        microprocessor; 1802, 1804, 1805, or 1806. Any clock
+        frequency is acceptable; however, it sets the maximum baud
+        rate for serial communications (see I/O below).
+
+MEMORY  RAM: 256 bytes minimum, fully decoded and starting at
+        address 1000 (hex). TMSI Tiny BASIC will test for RAM
+        starting at this address, and adapt itself to the amount
+        found. RAM in excess of 256 bytes is used to hold Tiny
+        BASIC programs, so the more RAM, the larger the program.
+
+        BASIC ROM: One socket for a 27C32 4K byte EPROM, fully
+        decoded at address 0000. EPROM access time is 450nS,
+        which is acceptable for COSMAC systems running at up to
+        5 MHz. Data in the EPROM is active high (not inverted).
+        Execution should begin at 0000 with P = X = 0.
+
+        User EPROM (containing user BASIC programs): 1K bytes
+        of space are available in the TMSI Tiny BASIC EPROM for
+        user BASIC programs. Additional EPROMs may be added for
+        larger programs. They must be addressed above the first
+        page of RAM at 1000 (hex), and preferably above all RAM.
+        If a user EPROM is found by TMSI Tiny BASIC after reset,
+        it will be executed immediately as a BASIC program. If a
+        user EPROM is not used or not addressed immediately
+        above RAM, then pull-up resistors to +5v should be used
+        on the data bus to insure that TMSI Tiny BASIC does not
+        mistake a floating data bus for a user EPROM program.
+
+I/O     User terminal input and output is serial ASCII, using the
+	COSMAC's EF4 and Q pins respectively with a "software UART"
+	program. The baud rate can be from 60 to 2400 baud with a 2
+	MHz clock; scale proportionately for other CPU clock
+	frequencies. TMSI Tiny BASIC automatically determines the
+	baud rate from the first character received after Reset,
+	which should be a <CR> (your RETURN or ENTER key) for full
+	duplex, or <LF> (your LINE FEED or control-J key) for half
+	duplex. See Appendix A for a sample RS-232 serial interface
+	circuit.
+
+
+
+
+
+
+                                -3-
+                             CHAPTER 4
+
+                           INSTALLATION
+
+These instructions are for the TMSI BASYS/1 microcomputer. However,
+they should serve as a guide for other systems as well. To avoid
+damaging the parts from static electricity, follow the instructions
+exactly as given. Then place a check mark in the space provided ( ).
+
+( ) Touch the metal case of crystal Y1 on the BASYS/1 board first to
+    discharge any static potential safely.
+
+( ) U11: Remove the chip at U11 from its socket, and hold it in one
+    hand. With the other hand, pick up the piece of protective foam
+    holding the Tiny BASIC IC. Insert U11 into the back of this
+    piece. Now remove the Tiny BASIC IC, and insert it into socket
+    U11. Be sure to position pin 1 (with the dot) as shown below.
+
+( ) X5: Install jumpers at    ____________________________________
+    pins 1-2, 3-14, 6-12,    /       |                    |       \
+    and 8-10 (configures    |        |         P2         |        |
+    U11 for a 27C32 EPROM). |        |::::::::::::::::::::|        |
+    .-----------------.     |        `--------------------'        |
+    | O O O O O O O O |     | .-----. .----.   .--------. .--..--. |
+    |     |   |   |   |     | |.U3  | |.U9 |   |.U17    | U25|U26| |
+  X5 > _  |    \   \  |     | `-----' `----'   `--------' `--'`--' |
+    | | | |     |   | |     | .-----. .-----.  .--------.  .-----. |
+    | O O O O O O O O |     | |.U2  | |.U8  |  |.U16    |  |.U24 | |
+    `-----------------'     | `-----' `-----'  `--------'  `-----' |
+( ) XD2: Install five diode | .----------------. .------.  .-----. |
+    jumpers as shown (A=    | |                | |.U15  |  |.U23 | |
+    anode, C=cathode). Puts | |   BREADBOARD   | `------'  `-----' |
+    RAM at 1000-17FF (hex). | |      AREA      | .------.  .-----. |
+    .-------------------.   | |                | |.U14  |  |.U22 | |
+    | O O O O O O O O O |   | |                | `------'  `-----' |
+    |   |   |  \   \ \  |   | `----------------'.------.   .---.   |
+ XD2 \  C   A   C   A C |   | .------. .----.   |.U13  |   |.X6|   |
+     /  A   C   A   C A |   | |.XD2  | |.X3 |   `------'   `---'   |
+    |    \  |   |   | | |   | `------' `----'   .------.   .-----. |
+    | O O O O O O O O O |   | .------. .-----.  |.U12  |   |.X5  | |
+    `-------------------'   | |.XD1  | |.U7  |  `------'   `-----' |
+( ) XD1: Install four diode |  ------   -----  .---------.         |
+    jumpers as shown. Puts  | .-----. .------. |         | .-----. |
+    BASIC at 0-0FFF (hex).  | |.U1  | |.U6   | |         | |.U21 | |
+    .-------------------.   | `-----' `------' |.U11     | `-----' |
+    | O O O O O O O O O |   |                  `---------'         |
+    |        \ \   \ \  |   |         .------------------. .----.  |
+ XD1 \        A C   A C |   |  |  |   |                  | |.U20|  |
+     /        C A   C A |   | .----.  |                  | `----'  |
+    |         | |   | | |   | |    |  |.U5               |D20      |
+    | O O O O O O O O O |   | | Y1 |  `------------------' .-----. |
+    `-------------------'   | |    |.-----. .-----. .-----.|.U19 | |
+( ) D20: If diode D20 is    | `----'|.U4  | |.U10 | |.U18 |`-----' |
+    installed, remove it.   |__     `-----' `-----' `-----'      __|
+                               |               P1               |
+This completes installation    | |||||||||||||||||||||||||||||| |
+of the TMSI Tiny BASIC EPROM.  |_||||||||||||||||||||||||||||||_|
+
+                                -4-
+
+                             CHAPTER 5
+
+                             CHECKOUT
+
+
+Re-install the BASYS/1 board in its cabinet, and connect it to a
+serial RS-232 or current-loop terminal. Appendix A gives a sample
+circuit for non-BASYS systems. Set the terminal for 300 baud, 8 data
+bits, no parity, 2 stop bits, and full duplex. Turn on the computer
+and reset it. There should be no response displayed on the terminal.
+Now push your <CR> or <LF> key. The computer will echo the Carriage
+Return, then print a Line Feed, and the message "NEW?".
+
+Respond by typing "Y" for yes, and then the <CR> key. This tells
+Tiny BASIC to start with a new program. Tiny BASIC will clear any
+old programs in memory, and print a ":" (colon) to indicate that it
+is ready for a BASIC statement or command.
+
+Type "PRINT 2+2" and then the <CR> key. Tiny BASIC will respond by
+printing "4". It's alive! This completes the initial checkout
+procedure.
+
+In Case of Difficulty
+
+Check the following list of problems, and their possible causes. If
+the symptoms of your problem are not on the list, your you are
+unable to fix the problem, please write or call Customer Service,
+and we'll do our best to help.
+
+1. No response -- terminal prints nothing at all.
+
+   a. No input at EF4 from keyboard.
+      Check the voltage at pin 21 of the COSMAC (U5). It should be
+      low (<0.5 volts) when no key is pressed, and high (>4 volts)
+      when the <BREAK> key is pressed or the terminal is turned off
+      or disconnected.
+
+   b. Q output not reaching terminal.
+      Check the voltage between pins 5 and 4 of opto-coupler U25.
+      When no key is pressed, pin 5 should be +0.5v to +1.5v above
+      pin 4 (i.e. the opto-coupler is "on". When keys are typed
+      and the computer echoes them (try typing a "repeat+<NUL>" or
+      "repeat+control+shift+L"), the opto-coupler will turn "off"
+      during each character, and the voltage between pins 5 and 4
+      will be close to (V+)-(V-) (P2 pin 36 and P2 pin 35
+      respectively).
+
+   c. Tiny BASIC EPROM not addressed at 0000 (hex).
+      Check the address decoding. On BASYS/1, there should be four
+      diodes in XD1, all installed at an angle (not straight across
+      the socket). See Chapter 4: INSTALLATION for details.
+
+   d. No RAM at 1000 (hex).
+      Check the address decoding. On BASYS/1, diodes D14, D15, D16,
+      and D18 should be installed at an angle in XD2, and D17 should
+      be straight across XD2. See Chapter 4: INSTALLATION for
+      details.
+                                -5-
+
+   e. Baud rate too high.
+      Be sure the baud rate is not above 1200 baud if a 2 MHz CPU
+      clock is used, or a proportionate rate for lower clock
+      frequencies.
+
+2. Tiny BASIC types "!(number) AT#(number)".
+
+   a. A second user EPROM or write-protected RAM was found that does
+      not contain a valid BASIC program. Disable or remove the
+      EPROM, or write-enable the RAM. If this is not easily done,
+      type "A=USR(2552)" and the <CR> key to jump to the monitor
+      program. Then type a second <CR> to set the baud rate. The
+      message "NEW?" will appear, to which you should type another
+      <CR>. Tiny BASIC will now ignore the EPROM and start again.
+
+   b. Write-protected RAM or partially-decoded images of the Tiny
+      BASIC EPROM appear in the memory map. Memory should be fully
+      decoded for TMSI Tiny BASIC. If not possible, BASIC will
+      improperly size RAM and won't be able to find and run user
+      programs in EPROMs.
+
+3. Terminal prints several characters of nonsense.
+
+   a. Terminal baud rate is too high, so an error message is being
+      printed but is unreadable. Before you type the first <CR>,
+      Tiny BASIC does not know your baud rate, and so assumes 300
+      baud and a 2 MHz clock. Also, the opto-couplers used for the
+      serial interface are not particularly fast; they will limit
+      the baud rate to about 2400 baud maximum no matter how fast
+      the COSMAC's clock speed is. Select a lower baud rate, and
+      correct the problem as in 2b above.
+
+   b. Serial output is inverted, or not working properly. See 1a and
+      1b above.
+
+   c. Terminal has parity enabled, or is not ASCII (Baudot, EBCDIC,
+      etc.). Disable parity and try again.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                -6-
+
+                             CHAPTER 6
+
+                             OPERATION
+
+
+When power is first applied or whenever the computer is Reset, TMSI
+Tiny BASIC searches for a user's program in the EPROM. If one is
+found, it is executed immediately, and all further actions are
+controlled by that program.
+
+If no user program is found in the EPROM, TMSI Tiny BASIC waits for
+you to type a key so it can determine the baud rate and echo status.
+Press the <CR> key for full duplex (so all serial inputs will be
+echoed as received), or the <LF> for half duplex operation (so keys
+you type are not echoed, because your terminal prints them directly
+by itself).
+
+TMSI Tiny BASIC will then print "NEW?" to ask if you want to begin
+with a new BASIC program (a "cold start"), or continue with one
+already in memory (a "warm start"). Type "Y" for yes, or "N" for no,
+and follow either response with the <CR> key.
+
+If you answer "yes", Tiny BASIC will test RAM and adapt itself to use
+the full amount available. The RAM test checks every location above
+1100 (hex) and can serve as a simple confidence test to find bad
+bits or addressing problems. Tiny BASIC now copies the initial values of
+its control parameters from the EPROM to RAM, where they can easily
+be examined or changed. See Appendix B for the location and function
+of these parameters. The program space is now defined as "empty",
+and BASIC prints its command-mode prompt ":" and is ready for use.
+
+If you answer "no", Tiny BASIC assumes that RAM has already been
+sized, the control parameters already moved, and that RAM contains a
+valid BASIC program. Therefore, there must have been at least one
+previous "NEW" since power-up to do this initialization. Everything
+is left as-is, and BASIC signs on with its command-mode ":" prompt
+and is ready for use.
+
+All inputs to Tiny BASIC are held in a 72-character buffer until the
+final <CR> key is typed. Excess characters will be ignored, and
+signaled by ringing the terminal's bell. When the final <CR> is
+typed, Tiny BASIC responds with a <LF> and then processes the line.
+When finished, it again types its ":" prompt and is ready for the
+next line.
+
+If you make a mistake when typing a line, there are two ways to
+correct it before the final <CR> key. First, you can
+"rubout" the error one key at a time. As supplied, this is the
+<BACKSPACE> key on most keyboards; ASCII code 08 (hex). Second, you
+can "cancel" the entire line. As supplied, this is this is the
+Control-X key on most keyboards; ASCII code 18 (hex). Both of these
+codes can be changed to suit your preferences (see Appendix B: ASCII
+Control Codes).
+
+
+
+
+                                -7-
+
+Tiny BASIC provides one more control function, useful for loading
+programs from a cassette recorder or paper tape reader that
+transmits its data continuously without stopping. If a line feed is
+received, all outputs from BASIC itself are disabled (prompts and
+program outputs; echoed inputs are not affected). BASIC can then
+receive data continuously without pausing to type a prompt or other
+data. Normal printing is restored by an X-OFF character (ASCII DC3,
+code 13 hex, control-S), or by any action that returns BASIC to the
+Command mode.
+
+
+The Command Mode
+
+When BASIC is not running a BASIC program, it is in the "immediate"
+or command mode, and types a colon ":" on the left margin. You may
+type in any BASIC statement, with or without a line number. If a
+line number is included, it will be inserted into the present
+program at the appropriate place without further action. Any
+previous line with the same number is deleted. If the line contains
+the line number only (a blank line), that line will be deleted from
+the program. 0 is not a valid line number. Tiny BASIC ignores
+blanks, so they may be used where desired to improve readability.
+However, after the first non-blank non-numeric character in the
+line, all blanks will be saved in memory. The following are all
+valid lines with line numbers.
+
+        10 PRINT "HELLO"
+        2 0 PRINT "THIS IS LINE #20"
+        10
+        3 0 P R I N T " S P A C E S "
+        1PRINT"smallest line number"
+        32767 PRINT "largest line number"
+        12345 Tiny BASIC ignores the contents of a line at insertion
+
+If the input line does not start with a line number, then it will be
+considered an immediate command and will be executed. The following
+is a list of the valid commands. They will be explained in more
+detail in the following pages:
+
+        IF ... THEN     GOSUB           REM
+        INPUT           GOTO            NEW
+        PRINT           RETURN          LIST
+        LET             END             RUN
+
+Note that all twelve of these can be used in the command mode
+(without a line number) or as statements within a BASIC program
+(with a line number). They all work the same as commands and
+program statements except INPUT and RUN, which behave slightly
+differently. Although it does not make much sense to use RUN or NEW
+in a program, they are still legal statements. Similarly, using
+GOSUB in the command mode will work, but will cause an error stop
+when the corresponding RETURN is executed because there is no
+program to return to.
+
+
+
+
+                                -8-
+
+The Execute Mode
+
+Once a BASIC program has been loaded into memory, it can be executed
+by simply typing "RUN". Tiny BASIC then enters the Execute mode.
+Execution begins at the first (lowest) line number, and continues
+from there. BASIC will return to the Command mode when a) the
+program executes an END statement, b) an error condition is detected
+(see below), or c) the user stops the program by hitting the
+terminals BREAK key (or by repeatedly hitting any other key). In the
+latter two cases, BASIC will print an error message indicating the
+cause of the halt, and the line number on which it occurred.
+
+Error Messages
+
+Tiny BASIC checks each line for errors when it is executed. An
+immediate command (typed without a line number) is thus checked for
+errors immediately after the final <CR> is typed. If there is an
+error on the line (mis-spelled keyword, divide by 0, etc.) BASIC
+prints an error message of the form:
+
+        !number
+
+where "number" is a number indicating the type of error. For
+example, "!243" indicates an attempt to divide by zero. A list of
+the error numbers and their meanings is given in Appendix C.
+
+Lines typed with a line number are entered into the program space
+exactly as typed. They will be checked for errors only when executed
+as part of a BASIC program. Thus lines of miscellaneous data,
+comments, instructions, or plain text can be entered, edited, and
+listed by Tiny BASIC. Errors found during execution of a BASIC
+program print an error message of the form:
+
+        !number AT#line
+
+and Tiny BASIC halts and returns to the command mode. "Number" is
+the error number as above, and "line" is the line number in the
+BASIC program in which the error occurred.
+
+Numbers
+
+A number in Tiny BASIC is any sequence of decimal digits (0-9)
+optionally preceded by a sign (+ or -). If no sign is used, the
+number is assumed to be positive. Tiny BASIC stores numbers as
+16-bit signed integers. This limits them to the range of +32767 to
+-32768 inclusive. You can enter numbers outside this range, but they
+will be truncated modulo 65536 (=2^16). In effect, Tiny BASIC will
+repetitively add or subtract 65536 to your number until it is
+between -32768 and +32767 (inclusive). Blanks have no significance
+within numbers and are ignored.
+
+
+
+
+
+
+
+                                -9-
+
+Similarly, leading zeros will be ignored. The following are examples
+of valid numbers. The comments in parentheses show the effect of
+truncation for numbers that are too large or too small.
+
+        1
+        123             (assumed positive)
+        +123
+        -123
+        1 2 3           (same as 123)
+        000123
+        +32767          (the largest positive number)
+        -32768          (the largest negative number)
+        32768           (32768 - 65536 = -32768)
+        65600           (65600 - 65536 = 64)
+        -100000         ( -100000 + 65536 + 65536 = 31072)
+
+
+
+
+Variables
+
+There are 26 variables in Tiny BASIC, each represented by a single
+capital letter A-Z. Each variable is assigned a 2-byte location in
+memory. The value of the variable is the contents of that location,
+which can be any valid number (i.e. an integer from -32768 to
++32767).
+
+Expressions
+
+An Expression is a combination of one or more numbers, variables,
+and math operators that can be evaluated to a single value. For
+example, the expression 2+2 evaluates to 4. The math operators are:
+
+        + add
+        - subtract
+        * multiply
+        / divide
+
+Tiny BASIC follows the normal rules of precedence for mathematics.
+Expressions are evaluated from left to right, performing all
+multiplications and divisions, and then all additions and
+subtractions. For example, in the expression:
+
+        2+3*4+5         (=29)
+
+the multiplication is done first (3*4=12), then the left addition
+(2+12=14), and finally the right addition (14+5=19).
+
+Parentheses may be used to alter the order of evaluation. Anything
+in parentheses will be evaluated first. Parentheses may be nested as
+needed. For example, if the above expression was instead written as:
+
+        (2+3)*(4+5)     (=45)
+
+then the left addition would be performed first (2+3=5), then the
+right addition (4+5=9), and the multiplication last (5*9=45).
+
+                               -10-
+
+Spaces are ignored in expressions. Tiny BASIC does not check for
+arithmetic overflows. However, an attempt to divide by zero will
+result in an error stop.
+
+The following are examples of valid expressions:
+
+        A
+        123
+        1+2-3
+        B-14*C
+        (A+B)/(C+D)
+        -128 / ( -32768 + (E*E) )
+        (((((Q)))))
+
+All expressions are evaluated as modulo 65536 integers. This means
+that the intermediate results from every addition, subtraction,
+multiplication, and division are all truncated to 16 bits. Thus an
+expression like (N/P*P) may not equal N because the remainder
+following the division is lost. In fact, this characteristic can be
+used to determine if a number N is an exact multiple of another
+number P. If so, then N/P*P=N.
+
+Any number in the range 32768 to 65535 (2^15 to 2^16-1) becomes a
+binary number with a sign bit of "1", and so is treated as NEGATIVE
+by Tiny BASIC, i.e. as if 65536 were subtracted from it. Thus the
+following expressions all produce the same result:
+
+        -4096
+        -4096+65536
+        -8193/2
+        15*4096
+        32768/8
+        30720+30720
+
+Statements
+
+A tiny BASIC statement begins with a keyword, such as REM or LET,
+indicating the type of statement. The function of the rest of the
+statement depends on the keyword, as defined below. Some keywords
+also have abbreviated forms to save typing and save space in memory.
+
+
+The REM statement
+
+        REM This is a remark
+
+The REM statement permits comments to be placed in a BASIC program.
+Everything from the REM to the end of the line will be ignored. REM
+statements have no effect on program execution except for the time
+it takes to skip over it.
+
+
+
+
+
+
+
+                               -11-
+
+
+The LET Statement
+
+        LET variable=expression
+        variable=expression
+
+The keyword LET assigns the value of the expression to the variable.
+Optionally, the LET may be eliminated entirely to save memory.
+However, execution is faster if it is included. The following are
+example of the LET statement:
+
+        LET X=1
+        X=1
+        LET A=(B+C)/2
+
+
+The PRINT Statement
+
+        PRINT printlist
+        PR printlist
+
+This statement prints the values of the items in the printlist on
+the user's terminal or output device. PRINT can be abbreviated by
+PR to save memory. The items in the printlist can be numbers,
+variables, expressions, or quoted messages, as long as the printed
+line does not exceed 125 characters. Items in the printlist are
+separated by ";" (semicolons) or "," (commas). A semicolon between
+items causes them to be printed with no intervening spaces. If an
+item is preceded by a comma, it will begin printing at the next
+"tab stop". Tab stops are set automatically every 8 spaces. The
+following are examples of valid PRINT statements and the printed
+output they produce (assuming A=1 and B=2).
+
+        STATEMENT                       PRINTED OUTPUT
+        ---------                       --------------
+        PRINT                           (prints a blank line)
+        PRINT 123                       123
+        PR 1,2,3                        1       2       3
+        PR "HELLO"                      HELLO
+        PR"The answer is ";2+2          The answer is 4
+        PR  "A=";A,"B=";B               A=1     B=2
+
+A PRINT statement normally ends with a <CR><LF> (Carriage Return and
+Line Feed) ready for the next line. But if a PRINT statement ends
+with a comma "," or semicolon ";", the ending <CR><LF> sequence is
+not sent. Subsequent PRINT or INPUT statements (see next section)
+can then continue printing on the same line.
+
+A PRINT statement can also be ended with a colon ":". The colon
+sends an X-OFF control character (ASCII DC3, code 13 hex, control-S)
+just before the final <CR><LF> sequence. This can be used to control
+a mass storage device, or to prepare data for later input to other
+Tiny BASIC programs.
+
+
+
+
+                               -12-
+
+The INPUT Statement
+
+        INPUT inputlist
+        IN inputlist
+
+The INPUT statement lets the program get information from the
+user, and assign it to the variables in the inputlist. It may be
+abbreviated by IN. Normally, the Tiny BASIC line buffer is empty
+(i.e. the last keyboard input was fully processed). In this case,
+INPUT prints a question mark "?", a space, and an X-ON control
+character (ASCII DC1, code 11 hex, control-Q) to indicate that it
+is expecting data. The user responds by typing a line of one or more
+expressions, separated by commas "," and ending with a Carriage
+Return <CR>. BASIC evaluates each expression, and assigns its value
+to successive variables in the inputlist. Consider the following
+examples.
+
+        STATEMENT       USER TYPES      ACTION
+        ---------       ----------      ------
+        INPUT A       ? 2+2             sets A=4
+        IN A,B,C      ? 4,A,A+B         sets A=4, B=4, and C=8
+
+If the user enters fewer expressions than there are variables in the
+inputlist, a new "?" will be printed to ask for more data. If the
+number of expressions is greater than the number of inputlist
+variables, the leftover expressions will be saved in the line buffer
+for subsequent INPUT statements.
+
+If there is data in the line buffer when INPUT begins, it uses that
+information first (before typing a "?"). Each expression is in turn
+evaluated, removed from the buffer, and assigned to the next
+inputlist variable as described above. If there are enough
+expressions to satisfy the inputlist, no "?" prompt will be issued;
+otherwise a "?" will be printed to request the additional
+expressions needed. Warning: Misalignment between expressions and
+inputlist variables can cause program bugs that are very difficult
+to locate -- match them carefully!
+
+        STATEMENT       USER TYPES      ACTION
+        ---------       ----------      ------
+        INPUT A,B     ? 2               sets A=2
+                      ? 3               2nd "?" prompt; sets B=3
+        IN A          ? 2,3             sets A=2, save 3 for next IN
+        IN B                            no "?" prompt; sets B=3
+
+Blanks are ignored as usual within input responses. The Backspace
+and Cancel functions also work normally for correcting errors as
+long as they are used before the final <CR>. There is no defined
+escape from an input request, but an invalid expression (such as
+divide-by-zero, a pair of commas, etc.) will result in an error
+stop.
+
+INPUT operates somewhat differently in the command mode if the
+inputlist has more than one variable. This is because the line
+
+
+
+                               -13-
+
+buffer contains BOTH the INPUT statement itself and the expression
+being input. For example, if you type
+
+        INPUT A,B
+
+in the command mode (no line number), Tiny BASIC first removes the
+first part of the statement (INPUT A) and executes it. But when it
+looks at the line buffer again, it finds the rest of the statement
+(,B). So it evaluates it as input data for the INPUT A statement,
+and sets A=B.
+
+
+The IF Statement
+
+        IF expression1 relation expression2 THEN statement
+        IF expression1 relation expression2 statement
+
+The IF statement computes the value of the two expressions, and
+compares them. If the relation specified is TRUE, then the statement
+is executed. Otherwise, the statement is skipped. The word THEN is
+optional, and may be omitted. The relation operators are:
+
+        =        equal
+        <        less than
+        >        greater than
+        <=       less than or equal (i.e. not greater than)
+        >=       greater than or equal (i.e. not less than)
+        <> or >< not equal (i.e. greater than or less than)
+
+Note that the statement following IF can be any valid Tiny BASIC
+statement, including another IF statement. The following are valid
+IF statements.
+
+        IF A=25 THEN LET B=0
+        IF A>B PRINT A,B
+        IF A>0 THEN IF A<10 PRINT A      (prints A only if 1-9)
+        IF N/P*P=N PRINT "NO REMAINDER"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                               -14-
+
+The GOTO Statement
+
+        GOTO expression
+
+Tiny BASIC normally executes a program in ascending statement number
+order. The GOTO statement permits changing this order. The next
+statement executed after a GOTO is the one specified by the value of
+the expression. Since the expression can include variables, the new
+line number can be a computed value. GOTO is quite useful within IF
+statements to make the program loop or branch.
+
+        GO TO 100
+        GOTO 200+A
+        IF A=0 GOTO 100
+
+If the value of the expression is zero, negative, or a non-existent
+line number, an error stop will result. If a GOTO is typed in the
+command mode (without a beginning line number), the program will
+begin executing at the specified line number instead of at the
+beginning. This is useful for resuming execution of a program halted
+by an error stop after correcting the error.
+
+
+
+The GOSBUB Statement
+
+        GOSUB expression
+
+The GOSUB statement is like the GOTO statement, except that the
+value of the expression in the GOSUB is saved before going to that
+line number. The next occurrence of a RETURN statement (described
+below) restores this saved line number, and execution continues with
+the statement following the GOSUB. The series of statements called
+by the GOSUB and ending in RETURN is called a "subroutine".
+Subroutines may include GOSUBs of their own, and such GOSUBs can be
+nested to any depth, limited only by the available memory. The
+following examples all call a subroutine starting at line 100.
+
+      GO SUB 100
+      GOSUB 50*2
+      GOSUB A          (where A=100)
+
+An error stop will result if the line number given by the expression
+is negative, zero, or does not exist. GOSUB may be typed in the
+command mode, but may produce an error stop when the corresponding
+RETURN is executed because there is no line number to return to.
+
+
+
+
+
+
+
+
+
+
+
+                               -15-
+
+The RETURN Statement
+
+        RETURN
+        RET
+
+The RETURN statement (which can be abbreviated as RET) transfers
+execution to the line following the most recent unused line number saved
+by a GOSUB statement (see above). If there is no matching GOSUB line
+number saved, an error stop results.
+
+A subroutine is a sub-program which consists of several statements
+that are used in two or more places in the main program. Rather than
+duplicating the statements each time they are needed, they are
+entered only once, and end with a RETURN statement. The subroutine
+can then be called from any number of places by GOSUBs. The
+following subroutine is called with a GOSUB 100. It will increment
+A, print it, and return to the caller.
+
+        100 LET A=A+1
+        110 PRINT A
+        120 RETURN
+
+
+The END Statement
+
+        END
+
+The END statement should be the last one executed in a program. It
+halts program execution and returns BASIC to the command mode. There
+may be as many END statements in the program as desired.
+
+
+The LIST Statement
+
+        LIST
+        LIST expression
+        LIST expression, expression
+
+The LIST statement is used to list part or all of the user program
+in memory. LIST may used alone, or may be followed by one or two
+expressions. Used alone, LIST will print the entire program. If one
+expression is given, it is evaluated to form a line number. LIST
+then prints this line of the program if it exists. If two
+expressions are given, they are evaluated and LIST prints the
+program lines between the two values (inclusive). If the last
+expression in a LIST statement evaluates to a number for which there
+is no line, the next line above that line number is listed as the
+last line. Zero is not a valid line number, and an error stop will
+result if it is used. The following are valid LIST statements.
+
+        LIST
+        LIST 100
+        LIST 50*2
+        LIST 100,200        (lists lines 100 to 200)
+        LIST 500,400        (lists nothing)
+
+
+                               -16-
+
+LIST is normally used in the command mode (without a line number).
+It can also be used within a program to list large blocks of text
+instead of PRINT statements, although it will of course include line
+numbers. A listing may be terminated early with the BREAK key. The
+format used by LIST can be recorded on the terminal's mass storage
+device, and subsequently reloaded by BASIC.
+
+
+The NEW Statement
+
+        NEW
+
+The NEW statement clears the current program from memory, sizes
+memory, and initializes the CPU registers. It is in effect a "cold
+start", and should be used before entering a new program.
+
+NEW is normally used in command mode (without a line number). If
+used within a program, the program will commit "suicide" and erase
+itself when the NEW statement is executed.
+
+
+The RUN Statement
+
+        RUN
+        RUN, expression
+
+The RUN statement is used to begin program execution at the first
+(lowest) line number. RUN may be followed by one or more
+expressions, separated by commas. These expressions are saved in the
+line buffer as the initial input line. When an INPUT statement is
+executed, it will first check the line buffer; if there is anything
+in it, it will be used first (see INPUT).
+
+        RUN
+        RUN,1,2        (line buffer contains "1,2")
+
+RUN is normally used in the command mode. If used within a program,
+RUN works as a GOTO the first line of a program.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                               -17-
+
+                            FUNCTIONS
+
+Tiny BASIC has two intrinsic functions: RND for generating a random
+number, and USR for calling a machine-language subroutine. Each
+function returns a single value, and can be used in any expression
+in place of a number or variable.
+
+
+The RND Function
+
+        RND (lowerlimit, upperlimit)
+
+RND generates a positive random number between the specified
+lowerlimit and upperlimit (inclusive). Both limits can be
+expressions if desired. The limits must be 0 <= lowerlimit <=
+upperlimit <= 32767 or an error stop will result. The following
+examples generate a random number between 1 and 100 (inclusive).
+
+        PRINT RND(1,100)
+        LET A=RND(1,2*50)
+
+
+The USR Function
+
+        USR (address)
+        USR (address, expression1)
+        USR (address, expression1, expression2)
+
+The USR function calls a machine-language subroutine at the
+specified address, and optionally passes it the values of one or
+two expressions. The subroutine can return a 16-bit number, which
+becomes the value of the USR function. The three arguments in
+parentheses can be any valid Tiny BASIC expression.
+
+A number of pre-defined USR functions are included to read and write
+data to memory, I/O ports, the keyboard, or the display. The user
+can also call the machine-level monitor program, IDIOT/4 (described
+in the next chapter). The monitor can be used to extend Tiny BASIC
+with additional machine-language USR functions as described in
+Chapter 8: Internal Operation.
+
+        USR (6)         Read Character
+                        Reads one ASCII character from the keyboard
+                        or other serial input device, and returns
+                        its decimal equivalent. Example:
+                                LET C=USR(6)
+                        sets C=65 if the user types the letter "A".
+
+        USR (9,0,n)     Print Character
+                        Prints the ASCII character specified by "n"
+                        to the screen or other serial output device.
+                        Only the lower 8 bits of "n" are used. The
+                        second expression (=0) is ignored. The value
+                        returned to BASIC is always 251. Example:
+                                C=C+0*USR(9,C,C)
+                        If C=65 (ASCII "A"), this prints an "A" and
+                        leaves the value of C unchanged.
+
+                               -18-
+
+        USR (20,a)      Memory Peek
+                        Returns the decimal value of the byte in
+                        decimal memory address "a". Since the most
+                        significant bit of Tiny BASIC numbers is the
+                        sign, positive values of "a" are addresses
+                        from 0000-7FFF hex, and negative values are
+                        addresses from 8000-FFFF hex. Example:
+
+                                PRINT USR(20,12)
+
+                        reads decimal address 12 (=000C hex), which
+                        contains the value 192 (=C0 hex); thus this
+                        statement prints 192.
+
+        USR (24,a,b)    Memory Poke
+                        Writes the decimal value of the lower 8 bits
+                        of expression "b" in decimal memory address
+                        "a" and returns the value of expression "b".
+
+                                LET A=USR(24,4115,24)
+
+                        writes the ASCII <CAN> code 24 decimal (=18
+                        hex) into memory address 4115 (=1013 hex),
+                        and sets A=24.
+
+        USR (32)        Call IDIOT/4 Monitor
+                        Calls the machine-level monitor program. The
+                        "*" prompt will be printed, and the monitor
+                        commands will then be available. The monitor
+                        saves the contents of all CPU registers; you
+                        can restore them and return to Tiny BASIC
+                        with the monitor command $R23 <CR>.
+
+        USR (35,n,m)    Read/Write COSMAC I/O Pins
+                        Returns the status of the COSMAC EF1-4 or Q
+                        pin selected by "n", and optionally sets or
+                        resets Q according to the value of "m".
+
+                          n=0 returns 0 if Q=0,   1 if Q=1
+                           =1    "    0 if EF1=1, 1 if EF1=0
+                           =2    "    0 if EF2=1, 1 if EF2=0
+                           =3    "    0 if EF3=1, 1 if EF3=0
+                           =4    "    0 if EF4=1, 1 if EF4=0
+
+                          m=0 leaves Q unchanged
+                           =1   sets Q=1
+                          =-1 resets Q=0 (m=any value but 0 or 1)
+
+                        Note that the physical EF1-4 pins on the
+                        COSMAC are active LOW (a low level on the
+                        pin sets the corresponding flag high).
+                        Only the lower 8 bits of "m" and "n" are
+                        used. Values of "n" other than 0-4 always
+                        return 1. Values of "m" other than 0 or 1
+                        will reset Q=0.
+
+
+                               -19-
+
+        USR (38,a)      Read Input Port
+                        For "a"=9 to 15, read the corresponding
+                        COSMAC input port (IN1-IN7), and return
+                        its decimal value (0-255). The lowest 4
+                        bits of "a" specifies which input port
+                        to read according to the following code:
+
+                                a=9 reads IN1
+                                =10   "   IN2
+                                =11   "   IN3
+                                =12   "   IN4
+                                =13   "   IN5
+                                =14   "   IN6
+                                =15   "   IN7
+
+                        For example: A=USR(38,11) sets A to the
+                        decimal value of input port IN3.
+
+        USR(38,a,b)     Write to Output Port
+                        For "a"=1 to 7, output the value of the
+                        lower 8 bits of expression "b" (0-255)
+                        to output port OUT1-OUT7. For example,
+                                A=A+0*USR(38,3,10)
+                        outputs 10 (0A hex) to output port 3.
+                        The value of A is not changed.
+
+Note that Tiny BASIC treats all numbers as decimal. Most machine
+language and hardware devices use hexadecimal or binary notation.
+Machine language opcodes, memory addresses, and I/O port values in
+hexadecimal must be converted to decimal for use by Tiny BASIC. For
+example, to call a machine language subroutine at address 0020 hex,
+you must use its decimal equivalent, 32. Similarly, address FFB5 hex
+is 65461 decimal; since 65461 is larger than 32767 (Tiny BASIC's
+maximum positive integer), subtract 65636 to get -75 (i.e. -75 in
+Tiny BASIC represents FFB5 in hexadecimal).
+
+Single-byte (8-bit) hexadecimal numbers should be represented by
+positive numbers from 0-255 in decimal.
+
+4-bit numbers 0-F hex are represented by positive numbers from 0-15
+decimal.
+
+The printable ASCII characters are represented by decimal numbers
+from 32-127. ASCII control codes include <NUL> Null=0, <BS>
+Backspace=8, <LF> LineFeed=10 (0A hex), and <CR> Carriage Return=13
+(0D hex). Conversion charts are given for converting between
+decimal, hexadecimal, and ASCII in Appendix E.
+
+
+
+
+
+
+
+
+
+
+                               -20-
+
+
+
+
+
+                             CHAPTER 7
+
+                     THE MACHINE-LEVEL MONITOR
+
+
+While many applications can be programmed completely in Tiny BASIC,
+there will be some tasks that need higher performance. In such
+cases, some or all of the program can be written in machine language
+using the machine-level monitor program IDIOT/4. Machine language
+offers great flexibility and much faster program execution, at the
+expense of being much harder to write and debug. To use the monitor
+properly, you will need a good working knowledge of the COSMAC
+microprocessor and its instruction set. You should also have a copy
+of the RCA "User Manual for the CDP1802 COSMAC Microprocessor",
+publication MPM-201, available from RCA or TMSI.
+
+The IDIOT/4 monitor provides direct access to the COSMAC
+microprocessor and all system memory and I/O. You can examine and
+change the contents of memory, CPU registers, and I/O bits EF1-4 and
+Q; load and dump programs to your terminal or mass-storage media
+(paper tape, cassette, etc.); block move memory contents from one
+place to another, and run and debug programs with or without
+breakpoints. The command and data formats are the same as used by
+RCA's UT4-UT20 series monitor programs. IDIOT/4 can also be used the
+RCA Editor and Assembler software for more advanced applications.
+
+
+Operation
+
+There are three ways to enter the monitor. To enter from Tiny BASIC,
+use the USR(32) function in a command or program statement; (for
+example, "PRINT USR(32)". From a machine language program, call the
+monitor with a "SEP R1" instruction (hex D1). Finally, if interrupts
+are enabled, you can call the monitor with a hardware interrupt (by
+pulling the COSMAC's INTERRUPT pin 36 low with a pushbutton switch
+for example).
+
+In each case, the monitor first saves a copy of all CPU registers
+and I/O bits EF1-4 and Q in RAM. All registers are saved correctly
+except T (and possibly P and X as described later in the IDIOT
+Monitor Summary). The monitor then types its "*" prompt and is ready
+for your commands.
+
+Commands consist of a punctuation character (?, !, or $) followed
+immediately by a letter (M, P, or R). All other characters will be
+printed on your terminal, but otherwise ignored. This feature lets
+you type in messages, comments, or text for documentation purposes,
+or just to check the terminal-to-computer I/O interface.
+
+The commands to IDIOT/4 are ?M (examine memory), !M (change memory),
+?R (examine registers), $R (run registers), and $P (run program).
+All numbers are in hexadecimal, and leading zeros are unnecessary.
+
+                               -21-
+
+Spaces, line feeds, etc. can be used where not ambiguous to improve
+readability. If the monitor detects a syntax error, it aborts the
+command and types a "?" to indicate that it didn't understand it.
+Commands are executed as they are typed in, so the "rubout" or
+"backspace" keys cannot be used to correct errors. When a command
+has been correctly executed, the monitor again types its "*" prompt
+and is ready for the next command.
+
+
+Examine Memory Command
+
+        ?Maaaa nnnn <CR>
+
+The "?M" command lists the contents of "nnnn" bytes of memory
+starting at address "aaaa". Following the <CR>, the monitor types
+the address as 4 hex digits, and then up to 16 data bytes of memory.
+The data bytes are paired into 2-byte (4-digit) groups. A new line
+is started every 16 bytes, with a semicolon ";" at the end of the
+line to indicate that the listing is continued on the next line. A
+final "*" indicates the end. Examples:
+
+        ?M20 3<CR>          (user types)
+        0020 C006 6F        (monitor prints)
+
+        ?M240023 4<CR>      (oops! corrected 0024 by typing 0023)
+        0023 C0 0BFE        (monitor prints)
+
+        ?M26 4Z<CR>         (syntax error; 4Z isn't hex)
+        ?                   (monitor prints "?" to indicate error)
+
+        ?M0000 20<CR>
+        0000 7100 E4C0 0800 C009 40C0 09A4 C006 665F;
+        0010 1882 8020 97BA 48D5 58D5 0679 1100 0010
+
+All numbers are in hexadecimal. Leading zeros are unnecessary. If
+more than 4 digits are typed for the address or byte count, only the
+last 4 are used; thus you can correct an error by simply following
+it with the correct number. For instance, the second example shows
+address 0024 was corrected to 0023. A long listing can be aborted by
+hitting your terminal's BREAK (or any other key repeatedly.
+
+The format used by ?M is suitable for saving data on your terminal's
+mass storage facility (paper tape, cassette, etc.). Before typing
+the final <CR>, turn on your punch or recorder. The monitor will
+ignore any spaces, nulls, or text you type as a header. Then type
+the final <CR> and the monitor will start outputting data. The
+resulting tape can then be used by the !M command to load memory.
+
+                               -22-
+
+Change Memory Command
+
+        !Maaaa dd .... dd <CR>
+        !Maaaa dd .... dd, comments <CR>
+               dd .... dd
+        !Maaaa dd .... dd; comments <CR>
+          aaaa dd .... dd
+
+The !M command writes data byte pairs "dd" into successive memory
+locations, starting at address "aaaa". The data bytes are written
+into memory as soon as they are typed, without waiting for the final
+<CR>. They must come in pairs of hex digits, or a syntax error will
+occur. Otherwise, nulls, spaces, and other non-hex characters are
+ignored by the monitor, and can be used to improve readability. A
+final <CR> ends the command.
+
+Two optional forms are provided for loading more data than will fit
+on one line. If you type a comma "," anything up to the final <CR>
+will be ignored, and memory loading will resume on the next line at
+the next sequential address. Similarly, a semicolon ";" also ignores
+anything you type up to the final <CR>; memory loading continues on
+the next line at a new address specified by the first hex number on
+the line. This allows changing non-sequential bytes of memory. The
+following examples illustrate the use of the !M command.
+
+        !M1000 001122 <CR>  (user types)
+        *                   (monitor writes 00 to address 1000,
+                             11 to address 1001, and 22 to 1002)
+
+        !M20031003 3344<CR> (oops! corrected 2003 to 1003)
+        *                   (monitor writes 33 to 1003, 44 to 1004)
+
+        !M1005 55 6X <CR>   (syntax error; 4Z isn't hex)
+        ?                   (monitor writes 55 to 1005, but then
+                             prints "?" to indicate error)
+
+        !M1006 66 77 88, comma makes it ignore comments <CR>
+        99 AA BB,        like these <CR>
+        CC <CR>             (this ends the Change Memory command)
+        *
+
+        !M100D DD; HERE: ORG 100Dh, SEP 13 semicolons let you <CR>
+        100E EE;         DB 0EEh  load assembler files with a <CR>
+        100E FF;         DB 0EEh  new address for each line   <CR>
+        1010 <CR>           (ends command)
+        *
+
+        ?M1000 10 <CR>      (use ?M to examine the results)
+        1000 0011 2233 4455 6677 8899 AABB CCDD EEFF;
+        *
+
+As with the ?M command, an erroneous address can be corrected by
+just following it with the corrected one; only the last 4 digits
+count. The third example shows a syntax error; the 55 gets written
+into memory, but the 6X does not -- it had to be re-typed on the
+following line. The last example shows the contents of memory after
+this series of !M commands.
+                               -23-
+
+The !M command will accept data produced by the ?M command. Simply
+type "!M;" without a final <CR>, then turn on your terminal's
+reader. Everything will be ignored (because of the semicolon) until
+the first <CR> is read from the tape. This should be followed with
+the first address, and then the data bytes to be loaded. The !M
+command will also load listings produced by the RCA assembler.
+
+
+Move Memory Command
+
+The ?M and !M commands can be used together to move a block of
+"nnnn" bytes of memory from address "aaaa" to "bbbb". Any size block
+can be moved, and overlapping blocks can be moved without error. The
+following examples illustrate the block move.
+
+        ?M0 10 !M1000 <CR>       (moves 10 bytes from 0 to 1000)
+        *
+
+        ?MC00 230024 !M1C00 <CR> (oops; corrected byte count to 24)
+        *
+
+        ?M0 10000 !M1 <CR>       (move entire memory up 1 byte)
+        *
+
+        ?M1234 56X               (syntax error; 56X is not hex)
+        ?
+
+The first example moves 10 hex (16 decimal) bytes starting at
+address 0000 to address 1000 hex. The addresses and byte count can be
+corrected using the last-4-digits rule as in the ?M and !M commands.
+The third example is the largest possible block move, and moves the
+entire contents of memory up one byte. But, since the IDIOT/4
+monitor is in ROM, it is write protected against damaging itself.
+But the Move Memory command can move anything in RAM, since it uses
+no RAM itself. Like ?M and !M, spaces can be used freely for
+readability, but non-hex characters will cause a syntax error.
+
+
+Examine Registers
+
+        ?R <CR>
+
+Upon entry, IDIOT/4 saves the state of the COSMAC CPU in RAM. This
+data can be listed using the ?R command. What actually happens is
+that ?R supplies the address and byte count, and performs a ?M to
+list the data. The following example shows the source of the data in
+each 4-byte pair of bytes in parentheses.
+
+        ?R <CR>
+        10B8 (ID,T) (DF,D) (IE,Q) (EF1-4);
+        10C0 (R0) (R1) (R2) (R3) (R4) (R5) (R6) (R7);
+        10D0 (R8) (R9) (RA) (RB) (RC) (RD) (RE) (RF)
+        *
+
+The first number on each line is the starting address for that line
+of register contents. For example, R1 is in location 10C2 and 10C3.
+
+                               -24-
+
+The register contents are interpreted as follows:
+
+        ID - Identifies what caused the registers to be saved.
+                00 - power or hardware RESET
+                10 - hardware or software interrupt, or USR(32)
+         T - Contents of T register. Contains old X and P if entry
+                     was via a hardware interrupt
+        DF - Contents of DF flag
+                00 - DF=0
+                01 - DF=1
+         D - Contents of D register (accumulator)
+        IE - Status of Interrupt Enable bit
+                00 - interrupts disabled
+                01 - interrupts enabled
+         Q - Status of Q bit
+                00 - Q=0
+                01 - Q=1
+     EF1-4 - Status of external flags about 500 usec after entry
+                1xxx - EF1=1 (EF1 pin low)
+                0xxx - EF1=0 (EF1 pin high)
+                x2xx - EF2=1 (EF2 pin low)
+                x0xx - EF2=0 (EF2 pin high)
+                xx3x - EF3=1 (EF3 pin low)
+                xx0x - EF3=0 (EF3 pin high)
+                xxx4 - EF4=1 (EF4 pin low)
+                xxx0 - EF4=0 (EF4 pin high)
+     R0-RF - Contents of registers R0-RF; 4 hex digits each
+
+Saving CPU registers is a great aid in debugging machine-language
+programs. Breakpoints (SEP R1 instructions) can be inserted into a
+program with the !M command. When executed, the breakpoint saves the
+registers for analysis with the ?R command. If desired, the register
+values saved in RAM can be altered with the !M command. These values
+can then be restored to the registers, and program execution resumed
+where it left off with the $R command (described below).
+
+The COSMAC architecture places certain limitations on the accuracy
+of the saved registers. The COSMAC itself alters R0, P, X, and IE
+upon Reset, so their previous contents are lost. In addition, the
+monitor uses R4 as a pointer to RAM. Thus if the ID code is 00
+(Reset), registers R0, P, X, IE, and R4 will not show the actual
+values at the time of Reset.
+
+If the ID code is 10, entry was via a hardware interrupt (COSMAC
+Interrupt pin low) or a software interrupt (SEP 1 instruction).
+Register R1 must point to the interrupt handler and R2 must point
+into RAM with at least 4 free bytes for a stack. When the COSMAC
+responds to a hardware interrupt, it saves the old values of X and P
+in the T register; therefore the previous contents of T is lost.
+Otherwise, all registers are saved correctly.
+
+
+
+
+
+
+
+                               -25-
+
+There are two ways to enter the monitor with a software interrupt
+(SEP 1). You can either save X and P; or T; but not both. To save T,
+insert a SEP 1 instruction in any machine-language program. To save
+X and P, insert a MARK and a SEP 1. MARK copies X and P into T, then
+pushes T onto the stack (via R2). Since MARK affects the stack and
+R2, the saved register contents should be interpreted accordingly.
+Other than this, all registers are saved correctly.
+
+
+Run Register Command
+
+        $R <CR>
+        $Rp <CR>
+        $Rxp <CR>
+
+The Run Register command restores all CPU registers (except T) to
+the values sown by the ?R command, and resumes program execution
+with these values. An optional value can be specified for X and P;
+if not specified, 0 is assumed. The following examples illustrate
+the use of the $R command.
+
+        $R <CR>          (restore register, and set X=0, P=0)
+        $R3 <CR>         (same, but set X=0, P=3)
+        $R23 <CR>	 (same, but set X=2, P=3)
+
+Since the Tiny BASIC USR function exits with X=2 and P=3, the last
+example will return to BASIC and resume execution right where it
+left off.
+
+There are a few precautions to observe when using $R to resume a
+program that was interrupted by a software interrupt (SEP 1)
+instruction:
+
+1. Be sure to restore the correct value of X and P.
+
+2. If a byte of the program was replaced by the SEP 1 (to insert a
+   breakpoint), execution will resume AFTER the SEP 1 and the
+   original instruction will not have been executed. You will have
+   to replace the SEP 1 with the original instruction, and decrement
+   the program counter by 1 so this instruction gets executed when
+   you resume.
+
+3. If the 2-byte sequence MARK, SEP 1 were substituted, two bytes
+   will need to be replaced with the original instructions, and the
+   program counter decremented by two to execute them. Also, R2 and
+   M(R2+1) will have to be corrected as well. These details can be
+   fixed by using !M to correct the RAM and register values saved in
+   RAM before using the $R command.
+
+
+
+
+
+
+
+
+
+                               -26-
+
+Run Program Command
+
+        $Paaaa
+
+The Run Program Command begins execution of the program at address
+"aaaa" with X=0, P=0, and interrupts disabled (similar to the effect
+of a hardware reset). If no address is specified, execution begins
+at 0000.
+
+        $P100N           (syntax error; 100N is not hex)
+        ?
+
+        $P1000           (runs program at 1000 hex)
+
+The address must be a hexadecimal number. As for the ?M and !M
+commands, only the last 4 digits typed are used for the address. If
+you make a mistake, simply retype the correct address as the last
+four digits.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                               -27-
+
+
+
+
+                             CHAPTER 8
+
+                        INTERNAL  OPERATION
+
+
+Although TMSI Tiny BASIC is quite versatile as delivered, you may
+wish to modify it for special applications. Typical changes may
+include adding new USR functions, modifying the I/O routines, or
+saving a BASIC program in ROM. To do these successfully, you will
+need a good working knowledge of the COSMAC microprocessor and must
+be familiar with the normal operation of Tiny BASIC  and the IDIOT
+monitor. This chapter will then provide you with the necessary
+details on memory allocation, register usage, and available
+subroutines.
+
+
+Memory Allocation
+
+TMSI Tiny BASIC is normally supplied in a single 4k byte 27C32 EPROM
+which is addressed from 0 to 4095 (0000 to 0FFF hex). This ROM
+contains all the necessary software, including I/O routines. Only
+the lower 3/4 of the ROM is used, leaving approximately 1k bytes
+available for expansion or user programs. Refer to the actual source
+code listing (Appendix G) for the specific beginning and ending
+addresses in your ROM.
+
+Tiny BASIC requires at least 256 bytes of RAM to store its buffers,
+variables, pointers, and other data. This RAM must be addressed at
+4096 to 4351 (1000 to 10FF hex). This RAM is initialized from data
+in the ROM whenever you answer the "NEW?" prompt with "Y" (for
+"yes"), or use the BASIC NEW command. Once initialized, Tiny BASIC
+works only with the data in RAM. Thus, you can temporarily change
+the way BASIC operates (until the next NEW) by changing values in
+RAM, or permanently change operation by changing the corresponding
+values in ROM with an EPROM programmer. Appendix F summarizes the
+contents of the first page of RAM and the corresponding ROM
+addresses from which they are initialized. The following sections
+provide further information on exactly what each of these values
+does.
+
+"NEW" also causes Tiny BASIC to set itself up to use all of the RAM
+available. It begins searching for RAM at address 4352 (hex 1100);
+just above the first page of RAM. The search continues upward until
+the first non-RAM byte is found. The actual contents of RAM is not
+changed by the test, so any programs or data in RAM are not harmed.
+Once RAM has been sized, the lower limit (normally 1100 hex) is
+saved at location 1020-1021 hex, and the upper limit at location
+1022-1023 hex. These limits define the amount of memory available
+for new Tiny BASIC programs.
+
+Tiny BASIC needs a "stack" during program execution to store return
+addresses, GOSUB line numbers, and other temporary data. This stack
+begins at the upper end of RAM. It grows downward as information is
+
+                               -28-
+
+pushed onto it, and shrinks back upward as the information is popped
+back off again. The contents of location 1017 hex is the "stack
+reserve", which specifies the number of bytes of RAM reserved for
+this stack. The stack reserve is normally set to 32 (20 hex), though
+Tiny BASIC itself only uses about half of this. Increasing the stack
+reserve gives you more room for nested GOSUBs or machine-language
+subroutine calls; decreasing the stack reserve gives you a little
+more room for programs. If you leave too little stack reserve, you
+may run out of stack space during program execution. If this happens
+in BASIC, it causes an error stop with the message "!232". If it
+happens during a machine-language subroutine, it can destroy the
+last line of the BASIC program. 
+
+
+Internal BASIC Program Format
+
+New Tiny BASIC programs are stored in RAM, beginning at the lower
+limit specified in locations 1020-1021 hex and growing upward. The
+contents of locations 1024-1025 hex is the end-of-program pointer,
+and points to the last byte of the program plus the stack reserve.
+When lines are deleted from the program, they are removed from RAM,
+the rest of the program is shifted down to fill the hole, and the
+end-of-program pointer is decreased by the appropriate amount. New
+lines are inserted into the program in ascending numerical order. A
+hole is created between the appropriate lines by moving the rest of
+the program up, inserting the new line, and increasing the
+end-of-program pointer by the right amount. If the insertion would
+cause the end-of-program plus stack reserve to exceed the upper end
+of RAM, you have run out of memory and a "!8" message is printed.
+Since the stack reserve is included in this test, you can run any
+program you can enter successfully.
+
+Once in RAM, each line of a Tiny BASIC program begins with a 2-byte
+line number (converted to binary), and ends with a carriage return
+(<CR>, 0D hex). The bytes in between contain the remaining ASCII
+characters in the line, exactly as originally entered and complete
+with spaces. The end of the program is marked by a 2-byte 0000 after
+the last line. The following shows a simple BASIC program in RAM:
+
+	:20 END                    (enter a 2-line BASIC program)
+        :10 PR A
+        :X=USR(32)                 (call the monitor to examine it)
+        *?M1017 F                  (display the BASIC pointers)
+             vv------------------- (stack reserve)
+        1017 20 0038 1234 0679 0679;
+        1020 1100 17FF 112E------- (end of program + stack reserve)
+                  ^^^^------------ (upper end of RAM)
+             ^^^^----------------- (start of program)
+        *?M1100 F                  (OK: show the BASIC program)
+        1100 000A 5052 2041 0D00 1445 4E44 0D00 00
+        *    \  / | |  | |  |  \  /|  | |  | \   /
+              10  P R    A <CR> 20 E  N D <CR> 00
+
+The lines were sorted into ascending order, the last two bytes were
+0000, and the last byte was located at (end of program + stack
+reserve)-(stack reserve)-(start of program) = 112E-1100-20 = 110E.
+
+                               -29-
+
+Saving a BASIC Program in EPROM
+
+A BASIC program in RAM will be lost whenever the computer is turned
+off or loses power. To prevent this, you can save your program in
+Read-Only Memory (ROM), which retains its contents indefinitely
+without power. TMSI Tiny BASIC automatically searches for such a
+program in ROM following power-on or Reset. If found, the ROM
+program is executed immediately, without other inputs: The initial
+<CR>, "NEW?" message response, and RUN command are not necessary.
+Thus you can write programs for control systems, test fixtures, and
+other dedicated applications that "wake up" and run without a person
+to type commands. In fact, no terminal keyboard or display is needed
+at all unless your own BASIC program uses PRINT or INPUT statements.
+
+In general, any TMSI Tiny BASIC program can be saved in ROM. The ROM
+version will be located at a different address than its RAM version,
+but this does not normally cause a problem because Tiny BASIC
+programs are intrinsically ROM-able and relocatable without change.
+However, there are a few special requirements that your Tiny BASIC
+program must meet to be saved in ROM successfully:
+
+1. The Command Mode
+
+   a. You cannot insert or delete lines from a BASIC program in ROM.
+      The program is permanent, and can't be changed by the
+      computer.
+
+   b. Likewise, the NEW command cannot clear a program in ROM.
+
+2. The USR Function
+
+   a. No USR function can alter the BASIC program itself.
+
+   b. If a USR function reads data within the program itself, it
+      must address the data relative to the start-of-program
+      pointer, not by an absolute address. For example, you could
+      read the 100th byte in a BASIC program in RAM by:
+
+        10 LET X=USR(20,100+4352)
+
+      since programs in RAM always begin at address 4352. But a ROM
+      program will begin at a different address, which depends on
+      where the ROM is addressed. Therefore, calculate the location
+      of the 100th byte by using the start-of-program pointer:
+
+        10 LET X=USR(20,100+USR(20,4128)*256+USR(20,4129))
+
+      The start-of-program pointer is a 16-bit address, stored at
+      locations 4128-4129. The second USR function reads the upper
+      half of this address (at 4128), multiplies it by 256 to make
+      it the most significant byte of a Tiny BASIC number. The third
+      USR function then reads the lower byte (at 4129) and adds it
+      to produce a single 16-bit Tiny BASIC number. This number
+      points to the start of the BASIC program regardless of whether
+      it is in ROM or RAM. The first USR function can then read the
+      100th byte in the program by adding 100 to this number.
+
+                               -30-
+
+3. Serial I/O
+
+   A BASIC program in ROM begins execution with the serial I/O
+   initialized for full duplex operation at 300 baud with a 2 MHz
+   clock. The COSMAC's EF4 pin is the serial input, and must be low
+   (i.e. the idle or "mark" state). If EF4 is high, BASIC will
+   interpret it as a "break" at the end of the first line, and stop
+   execution and return to Command mode.
+
+   a. If you want your ROM program to adapt itself to the baud rate
+      of the first key typed (as is done for programs in RAM), use
+      the following USR function in your program before the first
+      PRINT or INPUT statement:
+
+        USR(2302)
+
+      This function calls TIMALC, a subroutine that waits for the
+      first key typed, and sets the baud rate accordingly. This
+      first key must be a <CR> to select full duplex (all inputs
+      echoed to the serial output) or <LF> for half duplex (inputs
+      not echoed). 
+
+   b. If you want to set the baud rate to a specific value, refer to
+      the assembly language listing (Appendix G) and change location
+      08BB hex to the desired value.
+
+   c. If you will not be using serial inputs at all, either connect
+      the COSMAC's EF4 pin low, or disable the Tiny BASIC "break"
+      test by making this the first line of your program:
+
+        1 X=USR(24,4108,252)+USR(24,4109,0)+USR(24,4110,213)
+
+      This statement changes the "break" vector at address 4108
+      (100C hex) to ignore EF4 and always return without a break. It
+      does so by writing the following 3-byte program into memory:
+
+      address   data    instruction     comments
+      -------   ----    -----------     --------
+        100C    FC00    ADI 0           set DF=0 (no break)
+        100E    D5      SEP 5           return
+
+Once your Tiny BASIC program meets these requirements, it will be
+intrinsically ROM-able and relocatable. You should first load your
+program into RAM and test it thoroughly to be sure it is correct.
+
+The next step is to enter the IDIOT monitor, and examine the Tiny
+BASIC pointers to find out where the program is in RAM, and how big
+it is. If you are using a TMSI EPROM programmer, you can then use a
+block move command to save your program in an EPROM. The new EPROM
+can then be installed in the system and addressed to begin on any
+page boundary address (xx00 hex). It will begin execution
+automatically when the computer is turned on or reset.
+
+
+
+
+
+                               -31-
+
+An example should help make this process clearer. Assume that the
+following simple Tiny BASIC program is to be saved in ROM. A TMSI
+EPROM programmer is used, which is memory-mapped to begin at address
+8000 hex. Comments are in parentheses.
+
+        :NEW                       (clear the BASIC program space)
+        :10 LET X=0                (enter your BASIC program)
+        :20 PRINT X;
+        :30 X=X+1
+        :40 IF X<10 GOTO 20
+        :50 END
+        :RUN                       (now test it)
+        0123456789                 (it works)
+
+        :PRINT USR(32)             (call the monitor)
+        *M1017 F                   (examine the BASIC pointers)
+        1017 20 0038 1234 5678 0679;
+             ^^--------------------(stack reserve)
+        1020 1100 17FF 1156
+        *              ^^^^--------(end-of-program + stack reserve)
+             ^^^^------------------(start-of-program)
+
+Now, we know that the program starts at 1100 hex, and that its size is
+(end-of-program + stack reserve) - (stack reserve) - (start of
+program). Calculate the program's size (in hexadecimal):
+
+      (end-of-program + stack reserve)   1156
+                       (stack reserve)    -20
+                                         ----
+                                         1136
+                    (start-of-program)  -1100
+                                         ----
+                                           36
+(to include both first and last bytes)     +1
+                                         ----
+                  (total program size)     37
+
+Our example program is thus 37 hex bytes long. We can now use the
+IDIOT monitor's block move command to program it into an EPROM:
+
+        *?M1100 37 !M8000          (copy program to EPROM)
+                     ^^^^----------(destination in EPROM)
+                ^^-----------------(size of program)
+           ^^^^--------------------(start of program)
+
+        *$P0                       (reset, and run it from EPROM)
+        0123456789                 (it runs without further inputs)
+        :                          (and returns to BASIC's Command)
+                                   (mode when it reaches the END)
+                                   (statement)
+
+
+
+
+
+
+
+                               -32-
+Register Usage
+
+Between Tiny BASIC and the IDIOT monitor, every COSMAC register is
+used at one time or another. However, register usage conforms to
+generally-accepted COSMAC programming practices. Several registers
+are free for use at defined times, such as within machine-language
+subroutines called by USR functions (see "Adding USR Functions").
+
+Register                        Usage
+--------                        -----
+   R0 - Initial program counter after reset; thereafter unused.
+        (Reserved for use as a DMA pointer).
+
+   R1 - Interrupt handler program counter; initialized to enter the
+        IDIOT monitor, but interrupts are initially disabled.
+
+   R2 - Stack pointer; stack begins at high end of RAM, and grows
+	downward. The top occupied byte on the stack (TOS) is at the
+	lowest address, and R2 always points to either TOS or TOS-1.
+
+   R3 - Normal program counter.
+
+   R4 - BASIC: Program counter for RCA's Standard Call and Return
+	Technique (SCRT) "call". A SEP 4 instruction followed by a
+	2-byte address calls the subroutine at that address.
+        MONITOR: General-purpose pointer to memory.
+
+   R5 - BASIC: Program counter for SCRT "return". A subroutine ends
+	with a SEP 5 to return to its caller.
+        MONITOR: Main program counter.
+
+   R6 - BASIC: Used by SCRT to save calling program's return address
+        to allow for passing inline parameters.
+
+   R7 - BASIC: Program counter for FECH routine. A SEP 7 followed by
+	a 1-byte address fetches the contents of that address on the
+	1st page of RAM (10xx hex), & points RD to address (10xx+1).
+
+   R8 - BASIC: General working register; also used by USR function.
+
+   R9 - BASIC: Intermediate Language (IL) program counter. Points to
+        the next IL instruction to be executed.
+
+   RA - BASIC: 16-bit accumulator; also used by USR function.
+        MONITOR: Memory address pointer.
+
+   RB - BASIC: Points to the next byte in the BASIC program.
+
+   RC - Program counter for DELAY subroutine, used for serial I/O.
+
+   RD - BASIC: Pointer to lowest page of RAM (10xx hex).
+        MONITOR: Hex address accumulator.
+
+   RE - Used for serial I/O: RE.1 holds the baud rate constant and
+	echo flag. RE.0 holds the delay flag.
+
+   RF - BASIC: General working register.
+        MONITOR: Used to hold the byte being sent via serial I/O.
+                               -33-
+
+User-Accessible Subroutines
+
+TMSI Tiny BASIC includes a number of machine-language subroutines
+that can be called from BASIC with the USR function, or used with
+machine language programs. The most commonly-used routines are
+described in Chapter 6 under "The USR Function". However, there are
+a few more that may prove useful in certain situations. The
+following list identifies all of these subroutines, with the
+emphasis on how they work at the machine language level. The names
+given are their labels in the assembly listing (Appendix G) which
+should be consulted for the actual executable code.
+
+Unless otherwise noted, subroutines can be called with a Tiny BASIC
+USR function, and use register R3 as their program counter. Routines
+with a dedicated program counter other than R3 can only be called
+from a machine language program: Read the descriptions carefully
+before you try to use them.
+
+          Location
+Name    Hex  Decimal    Description
+----    ---- -------    -----------
+KEYBD   1006    4102    Read vector: A 3-byte long branch
+                        instruction in RAM to the routine to read
+                        a key from the user's keyboard. KEYBD
+                        normally points to the TTYRED routine.
+
+TYPED   1009    4105    Type vector: A 3-byte long branch
+                        instruction in RAM to the routine that types
+                        a key on the user's terminal or display
+                        device. TYPED normally points to TYPE.
+
+TBRK    100C    4108    Break vector: A 3-byte long branch
+                        instruction in RAM to the routine that
+                        tests for a "break" input from the user's
+                        keyboard. TBRK normally points to TSTBR.
+
+READ    093E    2366    Read a serial character via the COSMAC's EF4
+                        flag input, and return its ASCII code in
+                        registers RF.1 and D. The serial input
+                        expects 1 start bit, 8 data, and 1 stop bit.
+                        The COSMAC EF4 input (pin 21) should be low
+                        for a "mark" or stop bit, high for a "space"
+                        or start bit. The DELAY routine determines
+                        the baud rate. The READ routine uses P=3;
+                        alters registers DF, RE, and RF; and returns
+                        with a SEP 5. If the least significant bit
+                        of register RE.1 is 1, any key received will
+                        be echoed on the COSMAC Q output; if this
+                        bit is 0, then keys are not echoed.
+
+
+
+
+
+
+
+
+                               -34-
+
+          Location
+Name    Hex  Decimal    Description
+----    ---- -------    -----------
+TTYRED  0940    2368    Same as READ, but first executes an OUT 7,80
+                        hex instruction to turn on a serial input
+                        device such as a tape reader. Once the start
+                        bit of a character has begun, an OUT 7,40
+                        hex is executed to turn off the reader after
+                        one character.
+
+READAH  093B    2363    Same as READ, but if a hexadecimal character
+                        is received (0-9, A-F) it is also shifted
+                        into the lowest 4 bits of register RD, and
+                        DF=1 is returned. If the character is not
+                        hex, DF=0 is returned. READAH uses P=3;
+                        alters D, DF, RF, RE.0, and returns via a
+                        SEP 3 with R3 pointing to the READAH entry
+                        point for repeated calls.
+
+        Note: The READ routines (READ, TTYRED, and READAH) all exit
+        at the beginning of the echoed stop bit, and set register
+        RE.0 > 0 as a delay flag for the TYPE routines. The TYPE
+        routines (TYPE, TYPE2, TYPE5, and TYPE6) check this flag
+        before typing the next byte. If the flag is set, they will
+        first send two stop bits to insure that the previously
+        echoed character is finished. Take care not to reset this
+        flag (by using the DELAY routine or by setting RE.0=0)
+        until enough time has elapsed so no further delay is needed.
+
+TYPE5   09A0    2464   Type the byte at the memory location pointed
+                       to by register R5, and then increment R5.
+                       If the delay flag is set (RE.0>0), then wait
+                       2 bit times for any previous echoed read
+                       operation to end, type the byte, and then
+                       set the delay flag RE.0=0 so further TYPEs
+                       are not delayed. The serial output uses the
+                       COSMAC's Q output with 1 start bit, 8 data,
+                       and 2 stop bits. A LineFeed (=0A hex) is
+                       automatically followed with 3 Nulls (=00)
+                       in case the terminal needs time for its
+                       <CR><LF> operation. Q=0 is a "mark" or Stop
+                       bit, and Q=1 is a "space" or Start bit.
+                       The DELAY routine determines the baud rate.
+                       TYPE uses P=3; alters D, DF, X, RD.0, RE.0,
+                       RF.0, and exits with a SEP 5 and leaves R3
+                       pointing at TYPE5 for repeated calls.
+
+TYPE6   09A2    2466   Same as TYPE5, but uses and increments R6.
+
+TYPE    09A4    2468   Same as TYPE5, but types contents of RF.1.
+
+TYPE5D  099C    2460   Same as TYPE5, but always waits 2 bit-times.
+
+TYPE2   09AE    2478   Same as TYPE5, but types the 8-bit contents
+                       of register RF.1 as two hexadecimal digits
+                       (0-9, A-F).
+
+                               -35-
+
+          Location
+Name    Hex  Decimal    Description
+----    ---- -------    -----------
+TSTBR   0666    1638    Test for a "break" condition from the user's
+                        keyboard on the COSMAC's EF4 flag input pin.
+                        If EF4=1 (i.e. pin 21 is low), TSTBR returns
+                        immediately with DF=1; if EF4=0 (pin 21
+                        high), wait until it returns to 1 and then
+                        return with DF=0 (the "break" condition)
+                        TSTBR uses P=3; alters DF, and returns with
+                        a SEP 5.
+
+TIMALC  08FE    2302    Calculates the baud rate and sets the echo
+                        flag, based on the next serial character
+                        received. This character must be either a
+                        Carriage Return <CR> or Line Feed <LF>.
+                        <CR> selects full duplex, i.e. all serial
+                        inputs will be echoed. <LF> selects half
+                        duplex; serial inputs will not be echoed.
+                        TIMALC initializes register RC as a
+                        dedicated program counter for the DELAY
+                        routine, and loads a constant proportional
+                        to the baud rate in the upper 7 bits of
+                        RE.1. The least significant bit of RE.1 is
+                        the echo flag (0 for echo, 1 for no echo).
+                        TIMALC uses P=3; alters D, DF, RC, RE,
+                        RF.0; and returns with a SEP 5.
+
+DELAY   08EF    2287    Used by the READ and TYPE routines to
+                        generate a time delay proportional to the
+                        baud rate. The length of the delay (in
+                        machine cycles) is specified by:
+
+                          DELAY = 4 + (4 * BAUD * (BITS + 3))
+
+                        where BAUD is the baud rate constant in
+                        the upper 7 bits of RE.1, and BITS is an
+                        in-line byte from the calling program.
+                        DELAY uses RC as its dedicated program
+                        counter, and cannot be called with a USR
+                        function. It returns with a SEP 3; with
+                        DF=1, D=0, RE.0=0, and RC pointing to the
+                        DELAY entry point for repeated calls.
+
+PEEK    0014      20    Read the memory location specified by R8,
+                        and return its value in D. PEEK uses P=3;
+                        alters D, RA.1, R8, and returns with SEP 5.
+
+POKE    0018      24    Write the contents of the D register into
+                        the memory location specified by R8. Uses
+                        P=3; alters nothing, and returns with a
+                        SEP 5.
+
+
+
+
+
+                               -36-
+
+          Location
+Name    Hex  Decimal    Description
+----    ---- -------    -----------
+MONITOR 0020      32    Calls the machine level IDIOT monitor. The
+                        contents of all COSMAC registers are saved
+                        in RAM so they can be examined, altered,
+                        and restored if desired. The monitor itself
+                        is entered with a software interrupt;
+                        register R1 is initialized to point to the
+                        interrupt handler, and a SEP 1 is executed.
+
+IOBIT   0023      35    Routine to allow Tiny BASIC to access the
+                        COSMAC's EF1-4 flag inputs and Q output.
+                        If D=1 on entry, set Q; if D>1, reset Q;
+                        if D=0, leave Q unchanged. The lower 3 bits
+                        of R8.0 specifies which flag bit to read
+                        and return in D; If R8.0=0, read Q; if 1-4
+                        read EF1-4 respectively. Returns D=1 if the
+                        selected bit is 1 or true, or D=0 if 0 or
+                        false. IOBIT uses P=3; alters D, DF, Q; and
+                        returns with a SEP 5.
+
+IO      0026      38    Routine to allow Tiny BASIC to access the
+                        COSMAC's IN1-7 and OUT1-7 I/O ports. This
+                        routine works by the unusual technique of
+                        writing a program onto the stack, and then
+                        executing it. Register R8.0 specifies the
+                        value of N: N=1-7 for OUT1-7; N=9-15 for
+                        IN1-7. For an OUT1-7, D holds the byte to
+                        be output. For an IN1-7, the byte read is
+                        returned in D. IO uses P=3; alters D and
+                        RA; and returns indirectly via a SEP 5.
+
+INTERUPT 08C5   2245    Interrupt handler for the IDIOT monitor.
+                        It saves a copy of the COSMAC registers in
+                        RAM and then enters the monitor. A software
+                        interrupt (SEP 1 instruction) saves all
+                        registers except P and X correctly.
+                        A hardware interrupt saves all except T
+                        correctly. R2 must point to a stack with
+                        at least 4 free bytes to save D and R4. 
+                        INTERUPT uses P=1 as its dedicated program
+                        counter, and cannot be called from BASIC
+                        with a USR function.
+
+
+
+
+
+
+
+
+
+
+
+
+
+                               -37-
+
+          Location
+Name    Hex  Decimal    Description
+----    ---- -------    -----------
+
+CALL    002A      42    CALL subroutine for implementing the RCA
+                        Standard Call and Return Technique (SCRT).
+                        CALL uses R4 as its dedicated program
+                        counter and can't be called from Tiny BASIC
+                        with a USR function. A machine language
+                        program calls a subroutine with a SEP 4
+                        instruction, followed by the 2-byte address
+                        of the subroutine being called. CALL saves
+                        the value of register R6 on the stack,
+                        saves R3 (the calling program's program
+                        counter) in R6, places the address of the
+                        subroutine being called in R3, and calls
+                        the subroutine with a SEP 3 instruction.
+                        CALL preserves D in RF.1, and exits with
+                        R4 pointing to the entry point of CALL for
+                        repeated calls.
+
+RETRN   0030      60    RETURN subroutine for SCRT. RETRN uses R5
+                        as its dedicated program counter, and can't
+                        be called from Tiny BASIC with the USR
+                        function. On completion, a machine language
+                        returns to its caller by executing a SEP 5
+                        instruction. RETRN then moves the calling
+                        program's address from register R6 to R3,
+                        restores the old value of R6 from the stack,
+                        and returns to the caller with a SEP 3
+                        instruction. RETRN preserves the contents
+                        of D in RF.1, and exits with R5 pointing
+                        to the entry point of RETRN for repeated
+                        returns.
+
+FETCH   0048      75    Fetches a designated byte from the first
+                        page of RAM (10xx hex). FETCH uses R7 as
+                        its dedicated program counter and can't
+                        be called from Tiny BASIC with the USR
+                        function. A machine language program calls
+                        FETCH with a SEP 7 instruction, followed
+                        by the lower byte of an address on the
+                        first page of RAM. FETCH then returns the
+                        contents of that address in register D,
+                        (address+1) in RD, and X=D. It then exits
+                        with a SEP 3 instruction, with R7 pointing
+                        to the entry point of FETCH for repeated
+                        calls.
+
+
+
+
+
+
+
+
+
+                               -38-
+
+Adding USR Functions
+
+True to its name, Tiny BASIC is not particularly fast or powerful.
+However, it does provide the USR function for calling machine
+language subroutines where additional speed or capabilities are
+needed. USR functions can perform virtually any task that the
+computer is capable of performing -- the built-in USR functions
+described in Chapter 6 are only a few examples. New USR functions
+can be written and tested with the IDIOT monitor, according to the
+rules given in this section. They can then be called from BASIC just
+like the existing USR functions.
+
+A USR function within a Tiny BASIC statement will take one of the
+following forms:
+
+        USR (expression1)
+        USR (expression1, expression2)
+        USR (expression1, expression2, expression3)
+
+The first expression is always required, and specifies the address
+of the machine language subroutine to be called. The second and
+third expressions are optional, and can be used to pass one or two
+16-bit values to the subroutine. When Tiny BASIC encounters any of
+the above forms, it evaluates each expression normally to produce
+one, two, or three 16-bit values. Note that Tiny BASIC treats each
+number as a decimal value, but that the IDIOT monitor and most
+machine language programs will treat them as hexadecimal numbers.
+Thus, if you want expression1 to specify the hex address 0020 for
+example, you must convert it to decimal (=32) and use this value in
+your USR function. Appendix E provides a hex-to-decimal conversion
+table to simplify this task.
+
+Once the expressions have been evaluated, the machine language
+subroutine at the address given by expression1 is called. Execution
+begins with COSMAC register P=3, X=2, and R3=expression1. If a
+second expression was supplied, R8=expression2. Similarly, if a
+third expression was supplied, RA=expression3. The stack pointer R2
+will be pointing to a free byte on the stack, and R4, R5, R7, and RC
+will be pointing to the entry points of the CALL, RETRN, FETCH, and
+DELAY subroutines respectively. Register R0, R1, R8, RA, RD, and RF
+may be used, but if any other registers will be changed, their
+contents should first be saved on the stack, and then restored
+before returning to Tiny BASIC.
+
+At the conclusion of your machine language subroutine, you can
+return a 16-bit number to Tiny BASIC as the value of the USR
+function; the upper 8 bits of this number should be placed in RA.1,
+and the lower 8 bits in D. You can then return to Tiny BASIC with a
+SEP 5 instruction.
+
+
+
+
+
+
+
+
+                               -39-
+
+USR Function Example
+
+The chart below shows the COSMAC register contents as they exist
+as the USR function begins execution of the first instruction of the
+machine language subroutine:
+
+        R0 -
+        R1 -
+    X = R2 - stack pointer *
+    P = R3 - value of expression 1
+        R4 - entry to CALL *
+        R5 - entry to RETRN *
+        R6 - return address to Tiny BASIC *
+        R7 - entry to FETCH *
+        R8 - value of expression 2
+        R9 - IL program counter *
+        RA - value of expression 3
+        RB - BASIC program pointer *
+        RC - entry to DELAY *
+        RD -
+        RE - serial I/O variables *
+        RF -
+
+         D -
+        DF -
+         Q - 0 serial I/O bit *
+        IE - interrupt enable *
+         T -
+
+                   * = Contents should be left alone, or saved and
+                       then restored before returning to BASIC.
+
+                       Unlabeled registers are free for use during
+                       the machine language subroutine.
+
+Let's add a Boolean AND to Tiny BASIC as an example of a new USR
+function. Given two 16-bit numbers, the AND operation sets each bit
+of the output to a "1" if and only if the corresponding bits in both
+numbers are "1"; otherwise the output bit is set to "0". This is
+done for each of the 16 bits in the numbers to produce a 16-bit
+result. So, our USR function accepts two numbers (let's call them X
+and Y), and returns with the value X AND Y.
+
+The two numbers will be passed to our machine language routine as
+expression2 and expression3, so they will be in registers R8 and RA
+respectively. The COSMAC has an 8-bit AND instruction, so we will
+have to use it twice; once for each half of the 16-bit numbers.
+Also, the AND instruction expects one of its operands in D, and the
+other on the stack. Once the AND has been performed, we'll have to
+put the results in D and RA.1 where Tiny BASIC expects to find them.
+
+Finally, we will have to find a place to put this routine in memory.
+A convenient location is in the last 32 bytes of the first page of
+RAM; locations 4320-4351 (10E0-10FF hex). This space is reserved for
+a DMA buffer, and not used by Tiny BASIC or the IDIOT monitor. So,
+if you're not using it for DMA, it is free for our AND function.
+
+                               -40-
+
+From Tiny BASIC, call the IDIOT monitor with "X=USR(32)" and then
+type in the following program:
+
+        !M10E0 98; GHI R8  ..Entry: get upper half of number X
+        10E1 52;   STR R2  ..   and put it on the stack (via R2)
+        10E2 9A;   GHI RA  ..put the upper half of number Y in D
+        10E3 F2;   AND     .."AND" D and stack together
+        10E4 BA;   PHI RA  ..   and save result in register RA.1
+        10E5 88;   GLO R8  ..get the lower half of number X
+        10E6 52;   STR R2  ..   and put it on the stack (via R2)
+        10E7 8A;   GLO RA  ..put the lower half of number Y in D
+        10E8 F2;   AND     .."AND" D and stack together
+        10E9 D5;   SEP R5  ..return to Tiny BASIC
+        <CR>
+        *$R23
+
+You only need to type the first part of each line up to and
+including the semicolons. However, the monitor will accept the
+program exactly as shown, ignoring the comments after the
+semicolons. After the <CR> to end the !M command, return to Tiny
+BASIC with a $R23 command. Then we can test the AND function by
+typing in the following lines in Command mode:
+
+        :PRINT "10 AND 3 = "; USR(4320,10,3)
+        10 AND 3 = 2
+        :
+
+Is this correct? Let's perform the AND operation ourselves in binary
+
+        Decimal   Binary
+             10 = 0000 0000 0000 1010
+              3 = 0000 0000 0000 0011
+       10 AND 3 = 0000 0000 0000 0010 = 2   <-- CORRECT!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                               -41-
+
+                             APPENDIX A
+
+                       SERIAL TERMINAL INTERFACE
+
+The following circuit or its equivalent will provide a COSMAC
+microprocessor with a minimal RS-232 serial interface suitable for
+TMSI Tiny BASIC. It is capable of operating up to 9600 baud.
+
+                      +5v
+                       |
+                       |
+                   22K >                              25-pin RS-232
+              Resistor >                              "D" Connector
+ ____________          >   2N4401 NPN         3.3K
+|        ___ |         |   Transistor       Resistor
+|        EF4 |_21______|______C   E__________/\/\/\________TXD
+|            |               _\___/_     |                 pin 2 
+|            |                  |B      _|_
+|            |                  |      _\_/_ 1N914
+|            |                  |        |   Diode
+|            |                 _|_      _|_            ____RTS
+|            |                  =        =            |    pin 4
+|            |                    Ground              |
+|            |                                        |____CTS 
+|            |                                             pin 5
+|            |          +5v
+|            |           |
+|            |           |
+|            |           >            (note 1)         ____DSR
+|            |       22K >           +5 to +15v       |    pin 6
+|            |  Resistor >               |            |
+|            |           |               |            |____DTR
+|            |           |               >                 pin 20
+|            |        | /E               > 1.8K            
+|          Q |_4______|/   2N4403 PNP    > Resistor
+|            |       B|\   Transistor    |
+|            |        | \C               |_________________RXD
+|____________|           |            | /C                 pin 3
+                         |____________|/   2N4401 NPN
+    COSMAC               |          B |\   Transistor
+Microprocessor           |            | \E
+                         >               |          _______COMMON
+                         > 22K           |        _|_      pin 7
+                         > Resistor      |         =
+                         |               |      Ground
+                         |_______________|
+                                         |
+                                         |
+                                     -5 to -15v
+                                      (note 1)
+Notes:
+
+1. Equal and opposite power supply voltages for RS-232 interface.
+
+2. RTS-CTS and DSR-DTR jumpers may be required by some terminals.
+
+
+                                A-1
+
+                             APPENDIX B
+
+                        ASCII CONTROL CODES
+
+TMSI Tiny BASIC uses the ASCII code for communicating with the
+user's terminal. The following list gives the control codes used and
+their functions. All the remaining control codes are ignored, and
+simply treated the same as any printable character.
+
+Name    Decimal Hex     Function
+----    ------- ---     --------
+<BREAK>    --   --      Break - Holding the serial input in the
+                        "space" condition for more than one
+                        character time is a "break". It is used
+                        to interrupt a BASIC program and return
+                        to the Command mode, or to interrupt a
+                        long LIST statement.
+
+<NUL>       0   00      Null (control-@) - A do-nothing code that is
+                        ignored when received. Nulls are also sent
+                        following a <CR><LF> to give a printer extra
+                        time to perform these functions.
+
+<BEL>       7   07      Bell (control-G) - This code is transmitted
+                        by BASIC to ring the terminal's bell if the
+                        72-character input line buffer is full and
+                        further keys typed are being ignored.
+
+<BS>        8   08      Backspace (control-H) - Deletes the previous
+                        key from the line buffer and prints an "_"
+                        (underline). Further <BS> keys keep deleting
+                        keys from the buffer until none are left;
+                        then further <BS> keys are ignored. The <BS>
+                        code can be changed temporarily (until the
+                        next Reset or NEW) by altering RAM location
+                        1013 hex, or permanently by altering EPROM
+                        location 000F hex. Any ASCII code can be
+                        used except <CR>, <LF>, <NUL>, or <DEL>.
+
+<LF>       10   0A      Line Feed (control-J) - If <LF> is the first
+                        key received after Reset, it sets the baud
+                        rate and selects half duplex operation. In
+                        BASIC, receiving an <LF> turns off further
+                        program output and line prompts until a
+                        <DC3> (control-S) is received, or when BASIC
+                        returns to Command mode. This function may
+                        be disabled by changing the contents of
+                        EPROM address 0012 hex to 00.
+
+<CR>       13   0D      Carriage Return (control-M) - Identifies the
+                        end of a line. If <CR> is the first key
+                        received after Reset, it sets the baud rate
+                        and selects full duplex operation. Each <CR>
+                        received is automatically followed by the
+                        sequence <LF><NUL><NUL><NUL> in case the
+                        printer needs time to complete operation.
+
+                                B-1
+
+Name    Decimal Hex     Function
+----    ------- ---     --------
+<DC1>      17   11      X-ON (control-Q) - Output by the INPUT
+                        statement following a "?" prompt for data.
+                        X-ON can be used to turn on a paper tape
+                        reader or cassette recorder for automatic
+                        inputs.
+
+<DC3>      19   13      X-OFF (control-S) - Resumes the printing of
+                        prompts and program output if it had been
+                        disabled by an earlier <LF>. Otherwise,
+                        <DC3> is ignored.
+
+<CAN>      24   18      Cancel (control-X) - Cancels the entire line
+                        in the line buffer without executing it. The
+                        code for <CAN> can be changed permanently
+                        by altering EPROM location 0010 hex, or
+                        temporarily (until the next Reset or NEW
+                        command) by altering RAM location 1014 hex.
+                        Any ASCII code can be used except <CR>,
+                        <LF>, <NUL>, or <DEL>.
+
+<DEL>     127   7F      Delete (rubout) - A "do nothing" code that
+                        is ignored when received.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                B-2
+
+                             Appendix C
+
+                       Error Message Summary
+
+
+0       Break during execution
+8       Memory overflow; line not inserted
+9       Line number 0 not allowed
+11      RUN with no program in memory
+33      Improper syntax in GOTO
+35      No line number to GOTO
+40      LET is missing a variable name
+42      LET is missing an =
+45      Improper syntax in LET
+47      LET is not followed by END
+64      Missing close quote in PRINT string
+83      Colon in PRINT is not at end of statement
+85      PRINT not followed by END
+101     IF not followed by END
+111     INPUT syntax bad; expects variable name
+130     INPUT syntax bad; expects comma
+131     INPUT not followed by END
+140     RETURN syntax bad
+141     RETURN has no matching GOSUB
+142     GOSUB not followed by END
+147     END syntax bad
+179     LIST syntax error; expects comma
+189     Can't LIST line number 0
+193     LIST not followed by END
+198     REM not followed by END
+199     Missing or lowercase keyword, or bad line number
+201     Mis-spelled statement type keyword
+232     GOSUB stack overflow
+246     Can't divide by zero
+276     Syntax error in expression; expects value
+282     RND expects 2 arguments
+286     Syntax error; expects ")"
+321     IF syntax error; expects relational operator
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                C-1
+
+
+                             Appendix D
+
+                  Formal Definition of Tiny BASIC
+
+
+        line := statement <CR>
+                number statement <CR>
+   statement := PRINT printlist
+                PR printlist
+                INPUT varlist
+                LET var = expression
+                var = expression
+                GOTO expression
+                GOSUB expression
+                RETURN
+                IF expression relop expression THEN statement
+                IF expression relop expression statement
+                REM comments
+                NEW
+                RUN
+                RUN exprlist
+                LIST
+                LIST exprlist
+   printlist := printitem
+                printitem :
+                printitem separator printlist
+   printitem := expression
+                "characterstring"
+     varlist := var
+                var , varlist
+    exprlist := expression
+                expression , exprlist
+  expression := unsignedexpr
+                + unsignedexpr
+                - unsignedexpr
+unsignedexpr := term
+                term + unsignedexpr
+                term - unsignedexpr
+        term := factor
+                factor * term
+                factor / term
+      factor := var
+                number
+                ( expression )
+    function := RND ( exprlist )
+                USR ( exprlist )
+      number := digit
+                digit number
+   separator := , | ;
+         var := A | B | ... Y | Z
+       digit := 0 | 1 | ... 8 | 9
+       relop := < | > | = | <= | >= | <> | ><
+
+where ":=" means "is defined as"
+and "|"  means "or"
+
+                                D-1
+
+                            Appendix E
+                 ASCII / Decimal / Hex Conversions
+
+-------------------------- Control Codes -------------------------
+DEC HEX KEY NAME  ALTERNATE NAME  DEC HEX KEY NAME  ALTERNATE NAME
+  0  00  ^@  NUL  Null             16  10  ^P  DLE  Data Link Escape
+  1  01  ^A  SOH  Start Of Header  17  11  ^Q  DC1  XON, Reader On
+  2  02  ^B  STX  Start Of Text    18  12  ^R  DC2  Tape, Punch On
+  3  03  ^C  ETX  End Of Text      19  13  ^S  DC3  XOFF, Reader Off
+  4  04  ^D  EOT  End Of Transmit  20  14  ^T  DC4  TAPE, Punch Off
+  5  05  ^E  ENQ  Enquiry          21  15  ^U  NAK  Neg.Acknowledge
+  6  06  ^F  ACK  Acknowledge      22  16  ^V  SYN  Synchronous Idle
+  7  07  ^G  BEL  Bell             23  17  ^W  ETB  End Text Buffer
+  8  08  ^H  BS   Backspace        24  18  ^X  CAN  Cancel
+  9  09  ^I  HT   Horizontal Tab   25  19  ^Y   EM  End of Medium
+ 10  0A  ^J  LF   Line Feed        26  1A  ^Z  SUB  Substitute
+ 11  0B  ^K  VT   Vertical Tab     27  1B  ^[  ESC  Escape
+ 12  0C  ^L  FF   Form Feed        28  1C  ^\   FS  File Separator
+ 13  0D  ^M  CR   Carriage Return  29  1D  ^]   GS  Group Separator
+ 14  0E  ^N  SO   Shift Out        30  1E  ^^   RS  Record Separator
+ 15  0F  ^O  SI   Shift In         31  1F  ^_   US  Unit Separator
+
+----------------------- Printable Characters ----------------------
+DEC HEX KEY ALTERNATE  DEC HEX KEY ALTERNATE  DEC HEX KEY ALTERNATE
+ 32  20     space       64  40  @              96  60  `  accent
+ 33  21  !  exclamation 65  41  A              97  61  a
+ 34  22  "  quote       66  42  B              98  62  b
+ 35  23  #  pound       67  43  C              99  63  c
+ 36  24  $  dollar      68  44  D             100  64  d
+ 37  25  %  percent     69  45  E             101  65  e
+ 38  26  &  ampersand   70  46  F             102  66  f
+ 39  27  '  apostrophe  71  47  G             103  67  g
+ 40  28  (  open paren. 72  48  H             104  68  h
+ 41  29  )  close par.  73  49  I  letter I   105  69  i
+ 42  2A  *  asterisk    74  4A  J             106  6A  j
+ 43  2B  +  plus        75  4B  K             107  6B  k
+ 44  2C  ,  comma       76  4C  L             108  6C  l  lowercase L
+ 45  2D  -  minus       77  4D  M             109  6D  m
+ 46  2E  .  period      78  4E  N             110  6E  n
+ 47  2F  /  slash       79  4F  O  letter O   111  6F  o  lowercase O
+ 48  30  0  zero        80  50  P             112  70  p
+ 49  31  1  one         81  51  Q             113  71  q
+ 50  32  2  two         82  52  R             114  72  r
+ 51  33  3  three       83  53  S             115  73  s
+ 52  34  4  four        84  54  T             116  74  t
+ 53  35  5  five        85  55  U             117  75  u
+ 54  36  6  six         86  56  V             118  76  v
+ 55  37  7  seven       87  57  W             119  77  w
+ 56  38  8  eight       88  58  X             120  78  x
+ 57  39  9  nine        89  59  Y             121  79  y
+ 58  3A  :  colon       90  5A  Z             122  7A  z
+ 59  3B  ;  semicolon   91  5B  [             123  7B  {
+ 60  3C  <  less than   92  5C  \  backslash  124  7C  |  vertical bar
+ 61  3D  =  equal       93  5D  ]             125  7D  }
+ 62  3E  >  greater     94  5E  ^  caret      126  7E  ~  tilde
+ 63  3F  ?  question    95  5F  _  underscore 127  7F DEL delete
+
+                                E-1
+
+                Hex-Binary and Hex-Decimal Conversions
+
+               4th Digit     3rd Digit     2nd Digit     1st Digit
+HEX BINARY    HEX DECIMAL   HEX DECIMAL   HEX DECIMAL   HEX DECIMAL
+ 0 - 0000      0 ----- 0     0 ----- 0     0 ----- 0     0 ----- 0
+ 1 - 0001      1 - 4,096     1 --- 256     1 ---- 16     1 ----- 1
+ 2 - 0010      2 - 8,192     2 --- 512     2 ---- 32     2 ----- 2
+ 3 - 0011      3  12,288     3 --- 768     3 ---- 48     3 ----- 3
+ 4 - 0100      4  16,384     4 - 1,024     4 ---- 64     4 ----- 4
+ 5 - 0101      5  20,480     5 - 1,280     5 ---- 80     5 ----- 5
+ 6 - 0110      6  24,576     6 - 1,536     6 ---- 96     6 ----- 6
+ 7 - 0111      7  28,672     7 - 1,792     7 --- 112     7 ----- 7
+ 8 - 1000      8  32,768     8 - 2,048     8 --- 128     8 ----- 8
+ 9 - 1001      9  36,864     9 - 2,304     9 --- 144     9 ----- 9
+ A - 1010      A  40,960     A - 2,560     A --- 160     A ---- 10
+ B - 1011      B  45,056     B - 2,816     B --- 176     B ---- 11
+ C - 1100      C  49,152     C - 3,072     C --- 192     C ---- 12
+ D - 1101      D  53,248     D - 3,328     D --- 208     D ---- 13
+ E - 1110      E  57,344     E - 3,584     E --- 224     E ---- 14
+ F - 1111      F  61,440     F - 3,840     F --- 240     F ---- 15
+
+To convert a hexadecimal number into decimal, look up the decimal
+equivalent for each digit in the chart above, and add the decimal
+values together. For example, to convert 10F8 hex to decimal:
+
+1 0 F 8 hexadecimal
+^ ^ ^ ^
+| | | |___ 1st digit: 8 hex =     8 decimal
+| | |_____ 2nd digit: F hex =   240 decimal
+| |_______ 3rd digit: 0 hex =     0 decimal
+|_________ 4th digit: 1 hex = 4,096 decimal
+                              -----
+                       Total: 4,344 decimal
+
+                   Decimal-Hexadecimal Conversion
+
+To convert a decimal number N into hexadecimal; starting with the
+4th column in the above Hex-Decimal chart, find the largest decimal
+number that does not exceed N. The hex digit for this number is the
+4th (leftmost) hex digit. Subtract the decimal number from N. Repeat
+for each of the 4 columns. For example, to convert 4,344 decimal to
+hexadecimal:
+
+N = 4,344 decimal
+        Largest number in 4th column that does not exceed N is 4096
+        So 4th hex digit is 1. 4344 - 4096 = 248
+N = 248 decimal
+        Largest number in 3rd column that does not exceed N is 0
+        So 3rd hex digit is 0. 248 - 0 = 248
+N = 248 decimal
+        Largest number in 2nd column that does not exceed N is 240
+        So 2nd hex digit is F. 248 - 240 = 8
+N = 8 decimal
+        Largest number in 1st column that does not exceed N is 8
+        So 1st hex digit is 8. 8 - 8 = 0; we're done
+So 4,344 decimal = 10F8 hex
+
+                                E-2
+
+                             Appendix E
+
+                      Tiny BASIC Memory Usage
+
+  Location in ROM    Location in RAM
+   hex   decimal     hex      decimal            Contents
+-------- -------  ---------  ---------  ----------------------------
+                  1000-1005  4096-4101  Page 0 RAM; 1st 6 bytes free
+0006-0008   6-8   1006-1008  4102-4104  LBR to Key Input routine
+0009-000B   9-11  1009-100B  4105-4107  LBR to Type output routine
+000C-000E  12-14  100C-100E  4108-4110  LBR to Break detect routine
+                  100F-1012  4111-4114  unused
+000F       15     1013       4115       <BS> Backspace key code
+0010       16     1014       4116       <CAN> Cancel key code
+0011       17     1015       4117       Pad char; high 4 bits=1 for
+                                        <NUL>, =0 for <DELETE>. Low
+                                        4 bits=#pad char after <CR>
+0012       18     1016       4118       Tape Mode; 0=off, 80h=on
+0013       19     1017       4119       Stack Reserve
+                  1018       4120       Execution Mode flag
+                  1019       4121       End of input line buffer
+                  101A       4122       Arithmetic Expression Stack
+                                        pointer & Input Line Buffer
+                  101B       4123       Print Column (for Tabs),
+                                        msb = Tape Mode flag
+                  101C-101D  4124-4125  Saved PC for "NXT"
+001A-001B  26-27  101E-101F  4126-4127  Start addr of IL interpreter
+001C-001D  28-29  1020-1021  4128-4129  Start addr of BASIC program
+                  1022-1023  4130-4131  Highest addr of User RAM
+                  1024-1025  4132-4133  End BASIC prog+Stack Reserve
+                  1026-1027  4134-4135  Top of GOSUB stack
+                  1028-1029  4136-4137  Current BASIC program line#
+                  102A-102D  4138-4141  misc. temporary storage
+                  102E-102F  4142-4143  input line pointer
+                  1030-107F  4144-4223  arithmetic execution stack &
+                                        input line buffer (80 bytes)
+                  1080-1081  4224-4225  random number generator seed
+                  1082-1083  4226-4227  BASIC variable A
+                  1084-1085  4228-4229    "      "     B
+                     ...        ...                   ...
+                  10B4-10B5  4280-4281  BASIC variable Z
+                  10B6-10B7  4282-4283  unused
+                  10B8       4284       MONITOR Saved Registers ID:
+                                        00 if Reset, 10 if Interrupt
+                  10B9       4285       register T
+                  10BA-10BB  4286-4287      "    DF, D
+                  10BC       4288           "    IE
+                  10BD       4289           "    Q
+                  10BE-10BF  4290-4291  flags EF1, EF2, EF3, EF4
+                  10C0-10C1  4292-4293  register R0
+                  10C2-10C3  4294-4295      "    R1
+                     ...        ...              ..
+                  10DE-10DF  4318-4319      "    RF
+                  10E0-10FF  4320-4321  unused (reserved for DMA)
+                  1100-Top   4352-Top   Start of RAM BASIC program
+
+
+
+                                F-1
+
+                             Appendix G
+
+                     TMSI Tiny BASIC Assembly Listing
+
+The following listing is the [last as of 1981] version of TMSI Tiny
+BASIC distributed. It was assembled with the Avocet XASM18 1802
+Cross Assembler, version 1.55M. The Avocet assembler uses a slightly
+different format than RCA assemblers; the following summary outlines
+these differences.
+
+Each line of assembly code can be broken up into six columns (1-6).
+The columns are explained below.
+
+00B0 F8B3 COLD:   LDI  LOW $+3    ; THIS IS A COMMENT
+\  / \  / \   /   \  / \     /    \                 /
+ 1.   2.    3.     4.     5.               6.
+
+1. ADDRESS: The address (in hex) where the first byte of the opcode
+   assembled on this line is placed, or the value equated to a label
+   on that line. In this example, the code goes in memory address
+   00B0 hex.
+
+2. OPCODE: The assembled opcode bytes (in hex) of the instruction on
+   this line. RCA assemblers put a semicolon (;) after these bytes,
+   so UT4 and IDIOT monitors can read the listing file and ignore
+   everything on the line after this semicolon. The Avocet assembler
+   has only spaces after the last byte of assembled code.
+
+3. LABEL: An easy-to-remember name for a number or address. Labels
+   can be up to 8 characters long, and can contain letters or
+   numbers, and optionally end with a colon (:). At the end of the
+   listing is an alphabetical list of all labels and the numbers or
+   addresses that have been assigned to them. In this example, the
+   label COLD = 00B0.
+
+4. MNEMONIC or Assembler Directive: Standard RCA 1802 instruction
+   mnemonics (LDI, PHI, SEX, etc.), or assembler directives (DB, DW,
+   ORG, etc.). Example; LDI is the "Load D Immediate" instruction,
+   which assembled to an F8; thus the first OPCODE byte is F8.
+
+5. OPERAND: An expression that gets evaluated to 1 byte, 2 bytes, or
+   a string of bytes. "$" is a LABEL equal to the ADDRESS of this
+   line (00B0 in this example), so "$+3" evaluates to 00B3. The LDI
+   instruction expects a 1-byte operand, so "LOW" takes only the low
+   byte of 00B3, or B3. Thus, the second OPCODE byte is B3.
+
+6. COMMENT: Anything after a semicolon (;) is treated as a comment,
+   and ignored by the assembler.
+
+Since you have both the assembly listing and the executable code it
+produced, you should have little trouble figuring out the assembler
+syntax. However, here are a few more hints.
+
+The assembler assumes numbers are in decimal, unless otherwise
+marked. A hexadecimal number starts with "$" or ends with "H". A
+binary number starts with "%" or ends with "B".
+
+                                G-1
+
+Operands must evaluate to a number appropriate for the range of the
+mnemonic. For example, the operand for INP and OUT instructions must
+evaluate to 1-7. The operand for register instructions must evaluate
+to 1-F (hex). The labels R0-RF can also be used (i.e. INC 2 is the
+same as INC R2).
+
+The Avocet assembler has several built-in macros:
+
+        CALL LABEL  is a synonym for  SEP R4, DW LABEL
+        EXIT        is a synonym for  SEP R5
+        POP         is a synonym for  LDXA
+        PUSH        is a synonym for  STXD
+
+Additionally, a few instructions were equated to new names to make
+programs a little more readable:
+
+        DB LDI0     is a synonym for  GHI R7 ; sets D to 0
+        DB TYPA     is a synonym for  SEP R3 ; type character
+        DB FECH     is a synonym for  SEP R7 ; Page 0 subroutine
+
+A "DB" directive in the MNEMONIC column assembles bytes, so its
+operands must evaluate to a single byte. There can be multiple
+operands, separated by commas; they will each be evaluated and
+assembled into consecutive bytes. If the operand is a string of
+characters between single or double quotes (" or '), each character
+is placed in a consecutive byte.
+
+A "DW" directive in the MNEMONIC column assembled words (2 bytes
+each). The 1802 family places the high byte of a word in the lower
+address.
+
+I would like to thank Tom Pittman of Itty Bitty Computers for
+writing the original 1802 Tiny BASIC, and allowing me to release the
+source code for this version, which is a close derivative of his
+work.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                G-2
+
+(actual assembler listing continued in next file).

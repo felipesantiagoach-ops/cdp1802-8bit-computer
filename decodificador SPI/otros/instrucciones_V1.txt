@@ -1,0 +1,57 @@
+-------------------------------------------DEFINICIONES PREVIAS---------------------------------------------------------------
+; voy a usar registros y valores especificos para que se entienda mejor, pero se pueden usar otros registros y otros valores
+
+para hacer el pulso en PC7 debe estar en la memoria lo siguiente (Esas posiciones deben estár libres, si no lo estan, elegir otras. Pero tienen que ser consecutivas)
+esos bits son las instruciones para hacer PC7 -> 1, y PC7 -> 0 en el 82C55
+7F00	0XXX1111	para PC7 -> 1
+7F01	0XXX1110	para PC7 -> 0
+
+
+
+R3 -> F800	R3 apunta a la primera dirección del SPI
+
+R4 -> 7F00	R4 apunta a la dirección donde estan las instrucciones para hacer Set y Reset de PC7 del 82C55
+
+Estos registros deben ser cargados en una rutina previamente, y no deben modificarse en el transcurso de otras rutinas no relacionadas a la del circuito para la comunicación SPI de manera que siempre estén listas para ser utilizadas
+
+
+
+
+
+-------------------------------------------RUTINAS SEPARADAS-----------------------------------------------------------------------------
+
+
+Solo Escritura:
+	; Se parte de que el dato que se quiere escribir está en el acumulador D
+STR R3	; D -> M(R3)
+SEX R4	; 4 -> X
+OUT 7	; M(R(X)) -> BUS; R(X) + 1 -> R(X)	Esto hace PC7 -> 1
+OUT 7	; M(R(X)) -> BUS; R(X) + 1 -> R(X)	Esto hace PC7 -> 0
+DEC R4
+DEC R4	; decremento R4 dos veces para ponerlo en su valor inicial (la instrucción OUT lo modificó, lo quiero dejar como estaba)
+
+
+Solo Lectura:
+SEX R4	; 4 -> X
+OUT 7	; M(R(X)) -> BUS; R(X) + 1 -> R(X)	Esto hace PC7 -> 1
+OUT 7	; M(R(X)) -> BUS; R(X) + 1 -> R(X)	Esto hace PC7 -> 0
+DEC R4
+DEC R4	; decremento R4 dos veces para ponerlo en su valor inicial (la instrucción OUT lo modificó, lo quiero dejar como estaba)
+LDN R3	; M(R(N)) -> D; R(N) + 1 -> R(N)	Hay que tener cuidado porque aumenta R(N)
+DEC R3	; Decrementa R3 porque la instrucción anterior lo aumentó
+
+
+-------------------------------------------RUTINA DE ESCRITURA Y LECTURA JUNTAS-----------------------------------------------------------------------------
+Esta es una opción alternativa a las dos rutinas separadas, en esta se hace escritura y lectura en una sola rutina
+
+	; Se parte de que el dato que se quiere escribir está en el acumulador D, si no se quiere transmitir y solo recibir, no importa que tiene D
+STR R3	; D -> M(R3)
+SEX R4	; 4 -> X
+OUT 7	; M(R(X)) -> BUS; R(X) + 1 -> R(X)	Esto hace PC7 -> 1
+OUT 7	; M(R(X)) -> BUS; R(X) + 1 -> R(X)	Esto hace PC7 -> 0
+DEC R4
+DEC R4	; decremento R4 dos veces para ponerlo en su valor inicial (la instrucción OUT lo modificó, lo quiero dejar como estaba)
+LDN R3	; M(R(N)) -> D; R(N) + 1 -> R(N)	Hay que tener cuidado porque aumenta R(N)
+DEC R3	; Decrementa R3 porque la instrucción anterior lo aumentó
+
+

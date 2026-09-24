@@ -1,0 +1,31 @@
+# ---- LaTeX: archivos auxiliares ----
+*.aux
+*.log
+*.toc
+*.lof
+*.lot
+*.los
+*.lol
+*.out
+*.bbl
+*.bcf
+*.blg
+*.run.xml
+*.synctex.gz
+*.nlo
+*.nls
+*.ilg
+*.fdb_latexmk
+*.fls
+
+# ---- KiCad: copias de seguridad y archivos locales ----
+*-backups/
+*.kicad_prl
+fp-info-cache
+*-bak
+*.sch-bak
+*.kicad_sch-bak
+
+# ---- Comprimidos ----
+*.zip
+*.rar

@@ -1,0 +1,45 @@
+                        ; Origin set to 00000H, EOF = 0000DH
+   0000                 		ORG  00000H
+                        
+                        ; CPU Type:
+                        		CPU 1802
+                        
+                        ; Labels:
+                        
+                        ; Register Definitions:
+   0000                 R0		EQU 0
+   0001                 R1		EQU 1
+   0002                 R2		EQU 2
+   0003                 R3		EQU 3
+   0004                 R4		EQU 4
+   0005                 R5		EQU 5
+   0006                 R6		EQU 6
+   0007                 R7		EQU 7
+   0008                 R8		EQU 8
+   0009                 R9		EQU 9
+   000a                 RA		EQU 10
+   000b                 RB		EQU 11
+   000c                 RC		EQU 12
+   000d                 RD		EQU 13
+   000e                 RE		EQU 14
+   000f                 RF		EQU 15
+                        
+                        ; Start code segment
+   0000                 START
+   0000   f8 05         		LDI  05H  
+   0002                 WAIT
+   0002   3f 02         		BN4  WAIT      
+   0004                 HOLD
+   0004   37 04         		B4   HOLD    
+   0006   ff 01         		SMI  01H    
+   0008   3a 02         		BNZ  WAIT    
+   000a                 ENCENDIDO
+   000a   7b            		SEQ     
+   000b   30 0a         		BR   ENCENDIDO  
+   000d                 		END
+000a  ENCENDIDO     0004  HOLD          0000  R0            0001  R1        
+0002  R2            0003  R3            0004  R4            0005  R5        
+0006  R6            0007  R7            0008  R8            0009  R9        
+000a  RA            000b  RB            000c  RC            000d  RD        
+000e  RE            000f  RF            0000  START         0002  WAIT      
+

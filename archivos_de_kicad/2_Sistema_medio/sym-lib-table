@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name "2_memorias_Y_direccionamiento-rescue")(type "Legacy")(uri "${KIPRJMOD}/_autosave-sistema_medio.pro-rescue.lib")(options "")(descr ""))
+  (lib (name "_autosave-sistema_medio.pro-rescue")(type "Legacy")(uri "${KIPRJMOD}/_autosave-sistema_medio.pro-rescue.lib")(options "")(descr ""))
+)

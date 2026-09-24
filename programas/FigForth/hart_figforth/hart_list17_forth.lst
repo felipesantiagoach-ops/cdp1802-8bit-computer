@@ -1,0 +1,3717 @@
+                        ; This source for FIG-FORTH 1802 has been modified to 
+                        ; match the following FIG FORTH supplied to me by Lee Hart:
+                        ; as paper listing "source file 17"
+                        ; changes will be tagged "HRJ" if possible
+                        ; Herb Johnson June 17 2016
+                        ;
+                        ; FFFF  I   GGG        FFFF   OO   RRRR   TTTTT  H   H
+                        ; F     I  G           F     O  O  R  R     T    H   H
+                        ; FFF   I  G GGG   XX  FFF   O  O  RRR      T    HHHHH
+                        ; F     I  G   G       F     O  O  R  R     T    H   H
+                        ; F     I   GGG        F      OO   R   R    T    H   H
+                        ;
+                        ;               1   8888    00   2222
+                        ;               1   8  8   0  0     2
+                        ;               1   8888   0  0   22
+                        ;               1   8  8   0  0  2
+                        ;               1   8888    00   2222
+                        ;
+                        ;
+                        ;       ALL PUBLICATIONS OF THE FORTH INTREST GROUP
+                        ;       ARE PUBLIC DOMAIN.  THEY MAY BE FURTHER
+                        ;       DISTRIBUTED BY INCLUSION OF THIS CREDIT
+                        ;       NOTICE:
+                        ;
+                        ;       THIS PUBLICATION HAS BEEN MADE AVAILABLE BY THE
+                        ;                       FORTH INTREST GROUP
+                        ;                       P. O. BOX 1105
+                        ;                       SAN CARLOS, CA 94070
+                        ;
+                        ;       IMPLEMENTAION BY:
+                        ;               GARY R. BRADSHAW
+                        ;               RFD 1 BOX 80
+                        ;               GIDLEY ROAD
+                        ;               ESPERANCE, NY  12066
+                        ;
+                        ;       MODIFIED BY:
+                        ;               GORDEN FLEMMING
+                        ;               13490 SIMSHAW ST.
+                        ;               SYLMAR, CA  91342
+                        ;
+                        ;               JIM MCDANIEL
+                        ;               1109 POINCIANA DR.
+                        ;               SUNNYVALE, CA 94086
+                        ;;
+                        ;
+                        ;   ADDRESS COMMENTS & CORRECTIONS TO  JIM MCDANIEL.
+                        ;
+                        ;       ACKNOWLEDGEMENTS:
+                        ;
+                        ;               KEN MANTEI
+                        ;
+                        ;               FIG INSTALLATION MANUAL
+                        ;
+                        ;               FIG 8080 ASSEMBLY SOURCE LISTING..;
+                        ;
+                        ;
+                        ;               THIS LISTING TYPED     PRINTED 3/18/81
+                        ;
+                        ;; HRJ Apr 2016 mods Herb Johnson for A18 cross-assembler
+                        ;; change .EQU to EQU, things like that
+                        ;; HRJ June 17 2016 mode Herb Johnson to match Lee Hart
+                        ;; listing "source file 17"
+                        ; reassembled for Elf II:
+                        ;              Richard M Cox
+                        ;              2640 Calle Abedul
+                        ;              Thousand Oaks CA 91360
+                        ;; HRJ end
+                        ;
+                        ;
+                        ;       THE I/O VECTORS FOR DISC  ARE POINTING TO
+                        ;       ROUTINES FOR THE RCA CDP18S007, CDP18S008
+                        ;       OR THE CDP 18SOO5..
+                        ;       FOR OTHER SYSTEMS YOU WILL NEED TO
+                        ;       CHANGE THE POINTERS AND WRITE YOUR
+                        ;       OWN ROUTINES.;
+                        ;
+                        ; THE USER VARIABLE  DV IS 3 BYTES LONG
+                        ; (USER AREA OFFSET 32H 33H 34H) AND IS USED
+                        ; TO PASS VARIABLES TO THE RCA ROM UTILITY
+                        ; WHEN CALLING FOR DISK I/O.  THE RESIDENT ROM
+                        ; UTILITIES PRODUCE THEIR OWN ERROR MESSAGES.
+                        ;
+                        ; THIS VERSION ASSEMBLES WITH START UP CONSTANTS THAT
+                        ; ASSUME 28K OF RAM. DISC BUFFERS ARE
+                        ; SET FOR 1K (THIS CAN BE EASILY CHANGED
+                        ; BY CHANGING FIRST, LIMIT, B/BUF AND B/SCR).
+                        ; BLOCK 0 BEGINS AT TRACK 0 SECTOR 1.
+                        ;
+                        ;
+                        ; DR1 (SET DRIVE TO 1) IS IMPLEMENTED AS:
+                        ;  : DR1 B/SCR 250 * OFFSET ! ;
+                        ; THERFORE B/SCR AND B/BUF CAN BE CHANGED WITHOUT
+                        ; HAVING TO REWRITE
+                        ; DR1.
+                        ; THE TERMINAL I/O ASSUMES THE USE OF AN
+                        ; RCA CDP1854 UART CONFIGURED IN ONE OF THE
+                        ; ABOVE MENTIONED SYSTEMS.  THE UART IS DRIVEN
+                        ; DIRECTLY WITHOUT CALLING RCA ROM UTILITY
+                        ; ROUTINES.
+                        ;
+                        ;
+                        ; THE FORTH WORD   MON   EXITS FORTH AND RETURNS
+                        ; TO THE RESIDENT ROM UTILITY.
+                        ;
+                        ; THE FORTH WORD  BYE  IS DEFINED AS:
+                        ; : BYE  FLUSH  MON ;;
+                        
+                        ;; HRJ commentary from Lee Hart List follows
+                        ; this implementation does not include
+                        ; required disk I/O, namely words
+                        ;  (LINE), .LINE, DRIVE...[many more words listed]
+                        ;  [list end ends with] ....LIST, INDEX, TRIAD
+                        :
+                        ; the I/O vectors are pointing to 
+                        ; routines for UART I/O
+                        ; for other systems yo uwill need to change
+                        ; the pointers and write your own routines.
+                        ;
+                        ; function		pointer	routine
+                        ;			address	address
+                        ;
+                        ; EMIT		054A		153D
+                        ; KEY			0552		155F
+                        ;?TERMINAL		0560		1571
+                        ; CR			0576		154A
+                        ;
+                        ;; HRJ end commentary from Hart listing
+                        ;
+                        ;
+                        ;       REGISTER ALLOCATIONS FOR THIS VERSION
+                        ;
+                        ;               R2   RETURNS STACK POINTER  R0
+                        ;                    GROWS DOWN LEFT POINTING TO
+                        ;                    FREE LOCATION
+                        ;
+                        ;               R3   PC FOR I/O AND PRIMITIVES
+                        ;
+                        ;               R7, R8  TEMPORARY ACCUMULATORS
+                        ;
+                        ;               R9   COMPUTATION STACK POINTER   S0
+                        ;                    GROWS UPWARD
+                        ;                    LEFT POINTING AT HIGH BYTE
+                        ;
+                        ;               RA   FORTH "I" REGISTER   IP
+                        ;
+                        ;               RB   FORTH "W" REGISTER   WP
+                        ;
+                        ;               RC   PC FOR INNER INTERPRETER
+                        ;
+                        ;               RD   USER POINTER         UP
+                        ;
+                        ;               RF   DISC I/O
+                        ;
+                        ;               OTHER REGISTERS ARE LEFT AVAILABLE
+                        ;               EXCEPT THAT RF.0 IS ZERO AFTER COLD
+                        ;               OR WARM STARTS
+                        ;
+                        ;
+                        ;             MEMORY MAP
+                        ;
+                        ;       ---------------------- LIMIT
+                        ;
+                        ;            RAM BUFFERS
+                        ;
+                        ;       ---------------------- FIRST
+                        ;
+                        ;             USER AREA
+                        ;
+                        ;       ---------------------- UP
+                        ;
+                        ;            RETURN STACK      R0
+                        ;
+                        ;       ---------------------- 
+                        ;
+                        ;          TERMINAL BUFFER
+                        ;
+                        ;       ---------------------- TIB
+                        ;
+                        ;         COMPUTATION STACK
+                        ;
+                        ;       ---------------------- S0
+                        ;
+                        ;             FREE SPACE
+                        ;
+                        ;       ----------------------
+                        ;
+                        ;            TEXT BUFFER
+                        ;
+                        ;       ---------------------- PAD
+                        ;
+                        ;             WORD BUFFER
+                        ;
+                        ;       ---------------------- DP
+                        ;
+                        ;             DICTIONARY
+                        ;
+                        ;       ----------------------
+                        ;
+                        ;         BOOT UP PARAMETERS
+                        ;
+                        ;       ---------------------- ORGIN 005E
+                        ;
+                        ;          ANY REQUIRED I/O
+                        ;           INITIALIZATION
+                        ;
+                        ;       ---------------------- 0000
+                        ;
+                        ;
+                                INCL "1802reg.asm"
+                        ;HRJ A18 wants register names defined...
+                        
+   0000                 R0		EQU	0
+   0001                 R1		EQU	1
+   0002                 R2		EQU	2
+   0003                 R3		EQU	3
+   0004                 R4		EQU	4
+   0005                 R5		EQU	5
+   0006                 R6		EQU	6
+   0007                 R7		EQU	7
+   0008                 R8		EQU	8
+   0009                 R9		EQU	9
+   000a                 R10		EQU	10
+   000b                 R11		EQU	11
+   000c                 R12		EQU	12
+   000d                 R13		EQU	13
+   000e                 R14		EQU	14
+   000f                 R15		EQU	15
+                        
+   0000                 r0		EQU	0
+   0001                 r1		EQU	1
+   0002                 r2		EQU	2
+   0003                 r3		EQU	3
+   0004                 r4		EQU	4
+   0005                 r5		EQU	5
+   0006                 r6		EQU	6
+   0007                 r7		EQU	7
+   0008                 r8		EQU	8
+   0009                 r9		EQU	9
+   000a                 ra		EQU	10
+   000b                 rb		EQU	11
+   000c                 rc		EQU	12
+   000d                 rd		EQU	13
+   000e                 re		EQU	14
+   000f                 rf		EQU	15
+                        
+   000a                 RA		EQU	10
+   000b                 RB		EQU	11
+   000c                 RC		EQU	12
+   000d                 RD		EQU	13
+   000e                 RE		EQU	14
+   000f                 RF		EQU	15
+                        
+                        ;
+   4000                 FIRSTB  EQU  $4000 ; ADDRESS OF FIRST DISK BUFFER
+   6c2c                 LIMITB  EQU $6C2C ; END OF DISK BUFFER AREA
+   0009                 CSTACK  EQU  9
+   0002                 RSTACK  EQU 2
+                        	;
+   0000                         ORG $0000
+   2fff                 TOPRAM  EQU $2FFF			;HRJ
+                                ;
+                                ; SET-UP ROUTINES	;HRJ
+                                ;
+   0000   71                    DIS
+   0001   01                    DB $01
+   0002   63                    OUT 3               ; SET UP UART
+   0003   01                    DB $01
+   0004   f8 00                 LDI HIGH START
+   0006   b3                    PHI 3
+   0007   f8 5e                 LDI LOW START
+   0009   a3                    PLO 3
+   000a   f8 2f                 LDI HIGH TOPRAM
+   000c   b2                    PHI 2
+   000d   f8 ff                 LDI LOW TOPRAM
+   000f   a2                    PLO 2
+   0010   d3                    SEP 3
+                        	;
+                        	;
+                                ;
+   005e                         ORG $005E
+                        	;
+   005e   c4            START:  NOP
+   005f   c0 15 00              LBR COLD            ; COLD START
+   0062   c4                    NOP
+   0063   c0 15 15              LBR WARM            ; WARM START
+   0066   07 0a                 DW $070A          ; CPU NUMBER '1802'
+   0068   00 01                 DW $0001          ; REVISION NUMBER
+U  006a   ff f9                 DW TASK - 7        ; TOPMOST PRGM IN FORTH VOCABULARY
+   006c   00 08                 DW $0008          ; BACKSPACE
+   006e   20 00                 DW $2000          ; INITIAL USER AREA         UP
+   0070   1f 00                 DW $1F00          ; INITAL STACK              S0
+   0072   1f ff                 DW $1FFF          ; INITAL RETURN STACK       R0
+   0074   1f 80                 DW $1F80          ; TERMINAL BUFFER           TIB
+   0076   00 1f                 DW $001F          ; NAME FIELD WIDTH          WIDTH
+                                                    ;   (31 DECIMAL)
+   0078   00 00                 DW $0000          ; WARNING                   WARNING
+   007a   15 ea                 DW LEND            ; FENCE                     FENCE
+   007c   15 ea                 DW LEND            ; INIT DICTIONARY POINTER   DP
+   007e   0f 1d                 DW FRTH + 16       ; INIT VOCAB                VOC-LINK
+                        	;
+                        	;
+   0080   83 4c 49 d4           DB $83,"LI",$D4 ; LIT
+   0084   00 00                 DW $0000
+   0086   00 88         LIT:    DW $ + 2
+   0088   19                    INC R9
+   0089   19                    INC R9
+   008a   4a                    LDA RA
+   008b   59                    STR R9
+   008c   19                    INC R9
+   008d   4a                    LDA RA
+   008e   59                    STR R9
+   008f   29                    DEC R9
+   0090   dc                    SEP RC
+                        	;
+                                ;
+                                ; NEXT INNER INTERPRETER
+   0091   d3                    SEP R3              ; LEAVE RC AT NEXT
+   0092   4a            NEXT:   LDA RA
+   0093   bb                    PHI RB
+   0094   4a                    LDA RA
+   0095   ab                    PLO RB
+   0096   4b            WBR:    LDA RB
+   0097   b3                    PHI R3
+   0098   4b                    LDA RB
+   0099   a3                    PLO R3
+   009a   30 91                 BR NEXT - 1
+                                ; EXECUTE
+   009c   87 45 58 45           DB $87,"EXECUT",$C5 ; EXECUTE
+   00a0   43 55 54 c5   
+   00a4   00 80         	DW LIT - 6
+   00a6   00 a8         EXE:    DW $ + 2
+   00a8   49                    LDA R9
+   00a9   bb                    PHI RB
+   00aa   09                    LDN R9              ; LOAD W FROM STACK              
+   00ab   ab                    PLO RB
+   00ac   29                    DEC R9
+   00ad   29                    DEC R9
+   00ae   29                    DEC R9
+   00af   1c                    INC RC
+   00b0   1c                    INC RC
+   00b1   1c                    INC RC              ; POINT TO WBR
+   00b2   1c                    INC RC
+   00b3   dc                    SEP RC
+                        	;
+                        	;
+   00b4   86 42 52 41           DB $86,"BRANC",$C8 ; BRANCH
+   00b8   4e 43 c8      
+   00bb   00 9c                 DW EXE - 10
+   00bd   00 bf         BRCH:   DW $ + 2
+   00bf   4a            BRANCH: LDA RA
+   00c0   52                    STR R2
+   00c1   4a                    LDA RA
+   00c2   aa                    PLO RA
+   00c3   02                    LDN R2
+   00c4   ba                    PHI RA
+   00c5   dc                    SEP RC
+                        	;
+                        	;
+   00c6   87 30 42 52           DB $87,"0BRANC",$C8 ; 0BRANCH
+   00ca   41 4e 43 c8   
+                        ;;HRJ listing has manual fix from oh to zero
+   00ce   00 b4         	  DW BRCH - 9
+   00d0   00 d2         ZBRCH:  DW $ + 2
+   00d2   49                    LDA R9
+   00d3   3a dd                 BNZ NO
+   00d5   09                    LDN R9
+   00d6   3a dd                 BNZ NO
+   00d8   29                    DEC R9
+   00d9   29                    DEC R9
+   00da   29                    DEC R9
+   00db   30 bf                 BR BRANCH
+   00dd   1a            NO:     INC RA
+   00de   1a                    INC RA
+   00df   29                    DEC R9
+   00e0   29                    DEC R9
+   00e1   29                    DEC R9
+   00e2   dc                    SEP RC
+                        	;
+   00e3   86 28 4c 4f           DB $86,"(LOOP",$A9 ; (LOOP)
+   00e7   4f 50 a9      
+   00ea   00 c6                 DW ZBRCH - 10
+   00ec   00 ee         LUPE:   DW $ + 2
+   00ee   12                    INC R2
+   00ef   92                    GHI R2
+   00f0   b8                    PHI R8
+   00f1   b7                    PHI R7
+   00f2   82                    GLO R2
+   00f3   a8                    PLO R8
+   00f4   a7                    PLO R7
+   00f5   22                    DEC R2
+   00f6   08                    LDN R8
+   00f7   fc 01                 ADI $01
+   00f9   58                    STR R8
+   00fa   18                    INC R8
+   00fb   08                    LDN R8
+   00fc   7c 00                 ADCI $00
+   00fe   c4                    NOP                 ; TO NEW PAGE
+   00ff   c4                    NOP
+   0100   58            COMP:   STR R8
+   0101   18                    INC R8
+   0102   e7                    SEX R7
+   0103   48                    LDA R8
+   0104   f5                    SD
+   0105   17                    INC R7
+   0106   08                    LDN R8
+   0107   75                    SDB
+   0108   fa 80                 ANI $80
+   010a   32 13                 BZ CEND
+   010c   4a                    LDA RA
+   010d   52                    STR R2
+   010e   0a                    LDN RA
+   010f   aa                    PLO RA
+   0110   02                    LDN R2
+   0111   ba                    PHI RA
+   0112   dc                    SEP RC
+   0113   1a            CEND:   INC RA
+   0114   1a                    INC RA
+   0115   12                    INC R2
+   0116   12                    INC R2
+   0117   12                    INC R2
+   0118   12                    INC R2
+   0119   dc                    SEP RC
+                        	;
+   011a   87 28 2b 4c           DB $87,"(+LOOP",$A9 ; (+LOOP)
+   011e   4f 4f 50 a9   
+   0122   00 e3         	  DW LUPE - 9
+   0124   01 26         PLUPE:  DW $ + 2
+   0126   12                    INC R2
+   0127   92                    GHI R2
+   0128   b8                    PHI R8
+   0129   b7                    PHI R7
+   012a   82                    GLO R2
+   012b   a8                    PLO R8
+   012c   a7                    PLO R7
+   012d   22                    DEC R2
+   012e   e9                    SEX R9
+   012f   19                    INC R9
+   0130   08                    LDN R8
+   0131   f4                    ADD
+   0132   58                    STR R8
+   0133   18                    INC R8
+   0134   29                    DEC R9
+   0135   08                    LDN R8
+   0136   74                    ADC
+   0137   58                    STR R8
+   0138   09                    LDN R9
+   0139   fe                    SHL
+   013a   29                    DEC R9
+   013b   29                    DEC R9
+   013c   33 40                 BDF LUPE1
+   013e   30 01                 BR COMP +1
+   0140   18            LUPE1:  INC R8
+   0141   e7                    SEX R7
+   0142   48                    LDA R8
+   0143   f7                    SM
+   0144   17                    INC R7
+   0145   08                    LDN R8
+   0146   77                    SMB
+   0147   30 08                 BR COMP + 8
+                        	;
+                        	;
+   0149   84 28 44 4f           DB $84,"(DO",$A9 ; (DO)
+   014d   a9            
+   014e   01 1a                 DW PLUPE - 10
+   0150   01 52         PDO:    DW $ + 2
+   0152   29                    DEC R9
+   0153   29                    DEC R9
+   0154   e2                    SEX R2
+   0155   49                    LDA R9
+   0156   73                    STXD
+   0157   49                    LDA R9
+   0158   73                    STXD
+   0159   49                    LDA R9
+   015a   73                    STXD
+   015b   09                    LDN R9
+   015c   73                    STXD
+   015d   29                    DEC R9
+   015e   29                    DEC R9
+   015f   29                    DEC R9
+   0160   29                    DEC R9
+   0161   29                    DEC R9
+   0162   dc                    SEP RC
+                        	;
+                        	;
+   0163   85 44 49 47           DB $85,"DIGI",$D4 ; DIGIT
+   0167   49 d4         
+   0169   01 49                 DW PDO - 7
+   016b   01 6d         DGT:    DW $ + 2
+   016d   e9                    SEX R9
+   016e   29                    DEC R9
+   016f   09                    LDN R9
+   0170   ff 30                 SMI $30
+   0172   3b 88                 BNF BAD
+   0174   ff 11                 SMI $11
+   0176   33 7c                 BDF DOK
+   0178   ff f9                 SMI $F9
+   017a   33 88                 BDF BAD
+   017c   fc 0a         DOK:    ADI $0A
+   017e   59                    STR R9
+   017f   19                    INC R9
+   0180   19                    INC R9
+   0181   f7                    SM
+   0182   33 86                 BDF BAD2
+   0184   29                    DEC R9
+   0185   dc                    SEP RC
+   0186   29            BAD2:   DEC R9
+   0187   29                    DEC R9
+   0188   f8 00         BAD:    LDI $00
+   018a   73                    STXD
+   018b   59                    STR R9
+   018c   dc                    SEP RC
+                        	;
+   018d   86 28 46 49           DB $86,"(FIND",$A9 ; (FIND)
+   0191   4e 44 a9      
+   0194   01 63                 DW DGT - 8
+   0196   01 98         FIND:   DW $ + 2
+   0198   29                    DEC R9
+   0199   29                    DEC R9
+   019a   49                    LDA R9
+   019b   b8                    PHI R8
+   019c   49                    LDA R9
+   019d   a8                    PLO R8
+   019e   49                    LDA R9
+   019f   b7                    PHI R7
+   01a0   09                    LDN R9
+   01a1   a7                    PLO R7
+   01a2   29                    DEC R9
+   01a3   29                    DEC R9
+   01a4   e7            LOOP1:  SEX R7              ; SAVE LENGTH BYTE
+   01a5   07                    LDN R7
+   01a6   52                    STR R2
+   01a7   48                    LDA R8              ; COMPARE LENGTH BYTES
+   01a8   f3                    XOR
+   01a9   fa 3f                 ANI $3F
+   01ab   3a d3                 BNZ BADLEN
+   01ad   17            NEXCHR: INC R7
+   01ae   48                    LDA R8              ; COMPARE NEXT CHARACTER
+   01af   f3                    XOR
+   01b0   fe                    SHL
+   01b1   3a d4                 BNZ BADCHR          ; NO MATCH ON 7 BITS
+   01b3   7e                    SHLC
+   01b4   32 ad                 BZ NEXCHR           ; IF NOT LAST CHARACTER
+   01b6   47            LOOP2:  LDA R7              ;   ELSE END OF STRING
+   01b7   fa 80                 ANI $80
+   01b9   32 b6                 BZ LOOP2
+   01bb   e9                    SEX R9              ; END OF DICT NAME
+   01bc   87                    GLO R7
+   01bd   fc 04                 ADI $04
+   01bf   73                    STXD
+   01c0   97                    GHI R7
+   01c1   7c 00                 ADCI $00
+   01c3   59                    STR R9              ; LEAVE PFA
+   01c4   19                    INC R9
+   01c5   19                    INC R9
+   01c6   f8 00                 LDI $00
+   01c8   59                    STR R9
+   01c9   19                    INC R9
+   01ca   02                    LDN R2              ; GET LENGTH BYTE
+   01cb   59                    STR R9
+   01cc   19                    INC R9
+   01cd   f8 ff                 LDI $FF
+   01cf   59                    STR R9
+   01d0   19                    INC R9
+   01d1   73                    STXD                ; AND TRUE FLAG
+   01d2   dc                    SEP RC
+   01d3   17            BADLEN: INC R7
+   01d4   47            BADCHR: LDA R7
+   01d5   fa 80                 ANI $80
+   01d7   32 d4                 BZ BADCHR
+   01d9   07                    LDN R7
+   01da   3a e7                 BNZ BOK
+   01dc   17                    INC R7
+   01dd   07                    LDN R7
+   01de   27                    DEC R7
+   01df   3a e7                 BNZ BOK
+   01e1   f8 00                 LDI $00            ; LINK=0 RETURN FALSE
+   01e3   59                    STR R9
+   01e4   29                    DEC R9
+   01e5   59                    STR R9
+   01e6   dc                    SEP RC
+   01e7   47            BOK:    LDA R7
+   01e8   52                    STR R2
+   01e9   07                    LDN R7
+   01ea   a7                    PLO R7
+   01eb   02                    LDN R2
+   01ec   b7                    PHI R7
+   01ed   09                    LDN R9
+   01ee   a8                    PLO R8
+   01ef   29                    DEC R9
+   01f0   49                    LDA R9
+   01f1   b8                    PHI R8
+   01f2   30 a4                 BR LOOP1
+                        	;
+                        	;
+   01f4   87 45 4e 43           DB $87,"ENCLOS",$C5 ; ENCLOSURE
+   01f8   4c 4f 53 c5   
+   01fc   01 8d         	DW FIND -9
+   01fe   02 00         ENCL:   DW $ + 2
+   0200   29                    DEC R9
+   0201   29                    DEC R9
+   0202   49                    LDA R9
+   0203   b8                    PHI R8
+   0204   49                    LDA R9
+   0205   a8                    PLO R8
+   0206   19                    INC R9
+   0207   f8 00                 LDI $00            ; R7.0 IS OFFSET
+   0209   a7                    PLO R7
+   020a   09                    LDN R9              ; SAVE DELIM
+   020b   52                    STR R2
+   020c   e2                    SEX R2
+   020d   08            LOP1:   LDN R8
+   020e   f7                    SM
+   020f   3a 15                 BNZ FRST            ; FIND FIRST NON-
+   0211   18                    INC R8              ;   DELIM CHAR
+   0212   17                    INC R7
+   0213   30 0d                 BR LOP1
+   0215   87            FRST:   GLO R7              ; SAVE OFFSET TO
+   0216   59                    STR R9
+   0217   b7                    PHI R7
+   0218   19                    INC R9              ;   FIRST CHARACTER
+   0219   f8 00                 LDI $00
+   021b   59                    STR R9
+   021c   19                    INC R9
+   021d   19                    INC R9
+   021e   59                    STR R9
+   021f   19                    INC R9
+   0220   08            LOP2:   LDN R8
+   0221   32 2a                 BZ NULL             ; EQUAL NULL ?
+   0223   f7                    SM                  ; SUBTRACT DELIMIN
+   0224   32 38                 BZ DELIM
+   0226   18                    INC R8
+   0227   17                    INC R7
+   0228   30 20                 BR LOP2
+   022a   87            NULL:   GLO R7              ; LEAVE OFFSET
+   022b   e9                    SEX R9
+   022c   59                    STR R9
+   022d   97                    GHI R7              ; TO NEXT CHARACTER
+   022e   f7                    SM
+   022f   3a 32                 BNZ SKIP
+   0231   17                    INC R7
+   0232   87            SKIP:   GLO R7              ; LAST CHARACTER IN
+   0233   29                    DEC R9
+   0234   29                    DEC R9
+   0235   59                    STR R9              ; WORD
+   0236   19                    INC R9
+   0237   dc                    SEP RC
+   0238   17            DELIM:  INC R7
+   0239   87                    GLO R7
+   023a   59                    STR R9
+   023b   27                    DEC R7
+   023c   30 32                 BR SKIP
+                        	;
+   023e   85 43 4d 4f           DB $85,"CMOV",$C5 ; CMOVE
+   0242   56 c5         
+   0244   01 f4                 DW ENCL - 10
+   0246   02 48         CMOVE:  DW $ + 2
+   0248   49                    LDA R9
+   0249   fc 01                 ADI $01
+   024b   b7                    PHI R7
+   024c   09                    LDN R9
+   024d   a7                    PLO R7
+   024e   27                    DEC R7
+   024f   29                    DEC R9
+   0250   29                    DEC R9
+   0251   29                    DEC R9
+   0252   9a                    GHI RA              ; PUSH RA
+   0253   52                    STR R2
+   0254   22                    DEC R2
+   0255   8a                    GLO RA
+   0256   52                    STR R2
+   0257   49                    LDA R9              ; RA IS "TO"
+   0258   ba                    PHI RA
+   0259   09                    LDN R9
+   025a   aa                    PLO RA
+   025b   29                    DEC R9
+   025c   29                    DEC R9
+   025d   29                    DEC R9
+   025e   49                    LDA R9              ; R8 IS "FROM"
+   025f   b8                    PHI R8
+   0260   09                    LDN R9
+   0261   a8                    PLO R8
+   0262   29                    DEC R9
+   0263   29                    DEC R9
+   0264   29                    DEC R9
+   0265   97            LUUP:   GHI R7
+   0266   32 6e                 BZ END2
+   0268   48                    LDA R8
+   0269   5a                    STR RA
+   026a   1a                    INC RA
+   026b   27                    DEC R7
+   026c   30 65                 BR LUUP
+   026e   42            END2:   LDA R2              ; POP RA
+   026f   aa                    PLO RA
+   0270   02                    LDN R2
+   0271   ba                    PHI RA
+   0272   dc                    SEP RC
+                        	;
+   0273   82 55 aa              DB $82,$55,$AA  ; U*
+                                                    ; UNSIGNED 16 X 16 BIT MULTIPLY
+   0276   02 3e                 DW CMOVE - 8
+   0278   02 7a         USTAR:  DW $ + 2
+   027a   e9                    SEX R9
+   027b   f8 00                 LDI R0
+   027d   a7                    PLO R7              ; R7 IS LOW 2 BYTES
+   027e   b7                    PHI R7
+   027f   f8 10                 LDI $10            ; OF PRODUCT
+   0281   52            LP7B:   STR R2              ; MEM(2) IS LOOP COUNT
+   0282   87                    GLO R7
+   0283   fe                    SHL
+   0284   a7                    PLO R7
+   0285   97                    GHI R7
+   0286   7e                    SHLC
+   0287   b7                    PHI R7
+   0288   19                    INC R9              ; DOUBLE THE PRODUCT AND
+   0289   09                    LDN R9              ;   TEST HIGH BIT
+   028a   7e                    SHLC
+   028b   73                    STXD
+   028c   09                    LDN R9              ;   OF OP2
+   028d   7e                    SHLC
+   028e   59                    STR R9
+   028f   3b a0                 BNF SKP9A
+   0291   29                    DEC R9
+   0292   87                    GLO R7
+   0293   f4                    ADD
+   0294   a7                    PLO R7
+   0295   29                    DEC R9              ;   ADD OP1
+   0296   97                    GHI R7
+   0297   74                    ADC
+   0298   b7                    PHI R7
+   0299   19                    INC R9              ; TO 24 BIT PRODUCT
+   029a   19                    INC R9
+   029b   19                    INC R9
+   029c   f8 00                 LDI $00
+   029e   74                    ADC
+   029f   73                    STXD
+   02a0   02            SKP9A:  LDN R2
+   02a1   ff 01                 SMI $01
+   02a3   3a 81                 BNZ LP7B
+   02a5   29            UOUT:   DEC R9              ; MOVE REST OF
+   02a6   87                    GLO R7
+   02a7   73                    STXD
+   02a8   97                    GHI R7              ; PRODUCT TO STACK
+   02a9   59                    STR R9
+   02aa   19                    INC R9
+   02ab   19                    INC R9
+   02ac   dc                    SEP RC
+                        	;
+   02ad   82 55 af              DB $82,$55,$AF  ; U/ UNSIGNED DIVIDE
+   02b0   02 73                 DW USTAR - 5
+   02b2   02 b4         USLSH:  DW $ + 2
+   02b4   e9                    SEX R9
+   02b5   29                    DEC R9
+   02b6   29                    DEC R9
+   02b7   49                    LDA R9
+   02b8   b7                    PHI R7
+   02b9   09                    LDN R9
+   02ba   a7                    PLO R7
+   02bb   29                    DEC R9
+   02bc   29                    DEC R9
+   02bd   49                    LDA R9
+   02be   fe                    SHL
+   02bf   19                    INC R9
+   02c0   73                    STXD
+   02c1   29                    DEC R9
+   02c2   29                    DEC R9
+   02c3   49                    LDA R9
+   02c4   7e                    SHLC
+   02c5   19                    INC R9
+   02c6   59                    STR R9
+   02c7   19                    INC R9
+   02c8   f8 10                 LDI $10
+   02ca   a8                    PLO R8
+   02cb   87            LPC5:   GLO R7
+   02cc   7e                    SHLC
+   02cd   a7                    PLO R7
+   02ce   97                    GHI R7
+   02cf   7e                    SHLC
+   02d0   b7                    PHI R7
+   02d1   19                    INC R9
+   02d2   19                    INC R9
+   02d3   87                    GLO R7
+   02d4   f7                    SM
+   02d5   b8                    PHI R8
+   02d6   29                    DEC R9
+   02d7   97                    GHI R7
+   02d8   77                    SMB
+   02d9   3b de                 BNF SKPD8
+   02db   b7                    PHI R7
+   02dc   98                    GHI R8
+   02dd   a7                    PLO R7
+   02de   29            SKPD8:  DEC R9
+   02df   09                    LDN R9
+   02e0   7e                    SHLC
+   02e1   73                    STXD
+   02e2   09                    LDN R9
+   02e3   7e                    SHLC
+   02e4   59                    STR R9
+   02e5   19                    INC R9
+   02e6   28                    DEC R8
+   02e7   88                    GLO R8
+   02e8   3a cb                 BNZ LPC5
+   02ea   29                    DEC R9
+   02eb   30 a5                 BR UOUT
+                        	;
+   02ed   83 41 4e c4           DB $83,"AN",$C4  ; AND
+   02f1   02 ad                 DW USLSH - 5
+   02f3   02 f5         FAND:   DW $ + 2
+   02f5   89                    GLO R9
+   02f6   a8                    PLO R8
+   02f7   99                    GHI R9
+   02f8   b8                    PHI R8
+   02f9   28                    DEC R8
+   02fa   e8                    SEX R8
+   02fb   19                    INC R9
+   02fc   09                    LDN R9
+   02fd   f2                    AND
+   02fe   73                    STXD
+   02ff   29                    DEC R9
+   0300   09                    LDN R9
+   0301   f2                    AND
+   0302   58                    STR R8
+   0303   29                    DEC R9
+   0304   29                    DEC R9
+   0305   dc                    SEP RC
+                        	;
+   0306   82 4f d2              DB $82,$4F,$D2  ; OR
+   0309   02 ed                 DW FAND - 6
+   030b   03 0d         FFOR:   DW $ + 2
+   030d   89                    GLO R9
+   030e   a8                    PLO R8
+   030f   99                    GHI R9
+   0310   b8                    PHI R8
+   0311   28                    DEC R8
+   0312   e8                    SEX R8
+   0313   19                    INC R9
+   0314   09                    LDN R9
+   0315   f1                    OR
+   0316   73                    STXD
+   0317   29                    DEC R9
+   0318   09                    LDN R9
+   0319   f1                    OR
+   031a   58                    STR R8
+   031b   29                    DEC R9
+   031c   29                    DEC R9
+   031d   dc                    SEP RC
+                        	;
+   031e   83 58 4f d2           DB $83,"XO",$D2   ; XOR
+   0322   03 06                 DW FFOR - 5
+   0324   03 26         FXOR:   DW $ + 2
+   0326   89                    GLO R9
+   0327   a8                    PLO R8
+   0328   99                    GHI R9
+   0329   b8                    PHI R8
+   032a   28                    DEC R8
+   032b   e8                    SEX R8
+   032c   19                    INC R9
+   032d   09                    LDN R9
+   032e   f3                    XOR
+   032f   73                    STXD
+   0330   29                    DEC R9
+   0331   09                    LDN R9
+   0332   f3                    XOR
+   0333   58                    STR R8
+   0334   29                    DEC R9
+   0335   29                    DEC R9
+   0336   dc                    SEP RC
+                        	;
+   0337   83 53 50 c0           DB $83,"SP",$C0  ; SP@
+   033b   03 1e                 DW FXOR - 6
+   033d   03 3f         FSPAT:  DW $ + 2
+   033f   99                    GHI R9
+   0340   52                    STR R2
+   0341   89                    GLO R9
+   0342   19                    INC R9
+   0343   19                    INC R9
+   0344   19                    INC R9
+   0345   59                    STR R9
+   0346   29                    DEC R9
+   0347   02                    LDN R2
+   0348   59                    STR R9
+   0349   dc                    SEP RC
+                        	;
+   034a   83 53 50 a1           DB $83,"SP",$A1  ; SP!
+                                                    ;   stack pointer store
+   034e   03 37                 DW FSPAT - 6
+   0350   03 52         SP1:    DW $ + 2
+   0352   8d                    GLO RD
+   0353   fc 06                 ADI $06
+   0355   a8                    PLO R8
+   0356   9d                    GHI RD
+   0357   7c 00                 ADCI $00
+   0359   b8                    PHI R8
+   035a   48                    LDA R8
+   035b   b9                    PHI R9
+   035c   08                    LDN R8
+   035d   a9                    PLO R9
+   035e   dc                    SEP RC
+                        	;
+   035f   83 52 50 a1           DB $83,"RP",$A1  ; RP!
+                                                    ; RETURN STACK POINTER STORE
+   0363   03 4a                 DW SP1 - 6
+   0365   03 67         RP1:    DW $ + 2
+   0367   8d                    GLO RD
+   0368   fc 08                 ADI R8
+   036a   a8                    PLO R8
+   036b   9d                    GHI RD
+   036c   7c 00                 ADCI $00
+   036e   b8                    PHI R8
+   036f   48                    LDA R8
+   0370   b2                    PHI R2
+   0371   08                    LDN R8
+   0372   a2                    PLO R2
+   0373   dc                    SEP RC
+                        	;
+   0374   82 3b d3              DB $82,$3B,$D3  ; S (UNEST)
+   0377   03 5f                 DW RP1 - 6
+   0379   03 7b         SEMIS:  DW $ + 2
+   037b   12                    INC R2
+   037c   42                    LDA R2
+   037d   aa                    PLO RA
+   037e   02                    LDN R2
+   037f   ba                    PHI RA
+   0380   dc                    SEP RC
+                        
+   0381   85 4c 45 41           DB $85,"LEAV",$C5 ; LEAVE
+   0385   56 c5         
+   0387   03 74                 DW SEMIS - 5
+   0389   03 8b         LVE:    DW $ + 2
+   038b   92                    GHI R2
+   038c   b8                    PHI R8
+   038d   82                    GLO R2
+   038e   a8                    PLO R8
+   038f   18                    INC R8
+   0390   48                    LDA R8
+   0391   18                    INC R8
+   0392   58                    STR R8
+   0393   28                    DEC R8
+   0394   48                    LDA R8
+   0395   18                    INC R8
+   0396   58                    STR R8
+   0397   dc                    SEP RC
+                        	;
+   0398   82 3e d2              DB $82,$3E,$D2  ; >R   TO R
+   039b   03 81                 DW LVE - 8
+   039d   03 9f         GR:     DW $ + 2
+   039f   e2                    SEX R2
+   03a0   49                    LDA R9
+   03a1   73                    STXD
+   03a2   09                    LDN R9
+   03a3   73                    STXD
+   03a4   29                    DEC R9
+   03a5   29                    DEC R9
+   03a6   29                    DEC R9
+   03a7   dc                    SEP RC
+                        	;
+   03a8   82 52 be              DB $82,$52,$BE  ; R>   FROM R
+   03ab   03 98                 DW GR - 5
+   03ad   03 af         RG:     DW $ + 2
+   03af   19                    INC R9
+   03b0   19                    INC R9
+   03b1   19                    INC R9
+   03b2   12                    INC R2
+   03b3   42                    LDA R2
+   03b4   59                    STR R9
+   03b5   29                    DEC R9
+   03b6   02                    LDN R2
+   03b7   59                    STR R9
+   03b8   dc                    SEP RC
+                        	;
+   03b9   81 d2                 DW $81D2          ; R   COPY TOP OF RETN
+   03bb   03 a8                 DW RG - 5          ; STACK TO TOP OF
+   03bd   03 bf         R:      DW $ + 2           ; COMPUTATION STACK
+   03bf   82                    GLO R2
+   03c0   a8                    PLO R8
+   03c1   92                    GHI R2
+   03c2   b8                    PHI R8
+   03c3   18                    INC R8
+   03c4   19                    INC R9
+   03c5   19                    INC R9
+   03c6   19                    INC R9
+   03c7   48                    LDA R8
+   03c8   59                    STR R9
+   03c9   29                    DEC R9
+   03ca   08                    LDN R8
+   03cb   59                    STR R9
+   03cc   dc                    SEP RC
+                        	;
+   03cd   82 30 bd              DB $82,$30,$BD  ; 0=
+   03d0   03 b9                 DW R - 4
+   03d2   03 d4         ZEQAL:  DW $ + 2
+   03d4   49                    LDA R9
+   03d5   3a de                 BNZ NONE
+   03d7   09                    LDN R9
+   03d8   3a de                 BNZ NONE
+   03da   f8 01         ZONE:   LDI $01
+   03dc   30 e0                 BR STOR
+   03de   f8 00         NONE:   LDI $00
+   03e0   59            STOR:   STR R9
+   03e1   29                    DEC R9
+   03e2   f8 00                 LDI $00
+   03e4   59                    STR R9
+   03e5   dc                    SEP RC
+                        	;
+   03e6   82 30 bc              DB $82,$30,$BC  ; 0<
+   03e9   03 cd                 DW ZEQAL - 5
+   03eb   03 ed         ZLESS:  DW $ + 2
+   03ed   49                    LDA R9
+   03ee   fe                    SHL
+   03ef   33 da                 BDF ZONE
+   03f1   30 de                 BR NONE
+                        	;
+   03f3   81 ab                 DW $81AB          ; +
+   03f5   03 e6                 DW ZLESS - 5
+   03f7   03 f9         PLUS:   DW $ + 2
+   03f9   89                    GLO R9
+   03fa   a8                    PLO R8
+   03fb   99                    GHI R9
+   03fc   b8                    PHI R8
+   03fd   28                    DEC R8
+   03fe   e8                    SEX R8
+   03ff   19                    INC R9
+   0400   09                    LDN R9
+   0401   f4                    ADD
+   0402   73                    STXD
+   0403   29                    DEC R9
+   0404   09                    LDN R9
+   0405   74                    ADC
+   0406   58                    STR R8
+   0407   29                    DEC R9
+   0408   29                    DEC R9
+   0409   dc                    SEP RC
+                        	;
+   040a   85 4d 49 4e           DB $85,"MINU",$D3 ; MINUS
+   040e   55 d3         
+   0410   03 f3                 DW PLUS - 4
+   0412   04 14         MINUS:  DW $ + 2
+   0414   ff 00                 SMI $00            ; SET CARRY
+   0416   19            MINOS:  INC R9
+   0417   09                    LDN R9
+   0418   fb ff                 XRI $FF
+   041a   7c 00                 ADCI $00
+   041c   59                    STR R9
+   041d   29                    DEC R9
+   041e   09                    LDN R9
+   041f   fb ff                 XRI $FF
+   0421   7c 00                 ADCI $00
+   0423   59                    STR R9
+   0424   dc                    SEP RC
+                        	;
+   0425   82 44 ab              DB $82,$44,$AB  ; D+ DBL PRCN INTEGERS
+   0428   04 0a                 DW MINUS - 8       ; ARE STORED HIGH 16 BITS TOP
+   042a   04 2c         DPLUS:  DW $ + 2           ; LOW 16 BITS BENEATH
+   042c   89                    GLO R9
+   042d   ff 05                 SMI $05
+   042f   a8                    PLO R8
+   0430   99                    GHI R9
+   0431   7f 00                 SMBI $00
+   0433   b8                    PHI R8
+   0434   29                    DEC R9
+   0435   e8                    SEX R8
+   0436   09                    LDN R9
+   0437   f4                    ADD
+   0438   73                    STXD
+   0439   29                    DEC R9
+   043a   09                    LDN R9
+   043b   74                    ADC
+   043c   58                    STR R8
+   043d   18                    INC R8
+   043e   18                    INC R8
+   043f   18                    INC R8
+   0440   19                    INC R9
+   0441   19                    INC R9
+   0442   19                    INC R9
+   0443   09                    LDN R9
+   0444   74                    ADC
+   0445   73                    STXD
+   0446   29                    DEC R9
+   0447   09                    LDN R9
+   0448   74                    ADC
+   0449   58                    STR R8
+   044a   29                    DEC R9
+   044b   29                    DEC R9
+   044c   29                    DEC R9
+   044d   29                    DEC R9
+   044e   dc                    SEP RC
+                        	;
+   044f   86 44 4d 49           DB $86,"DMINU",$D3 ; DMINUS
+   0453   4e 55 d3      
+   0456   04 25                 DW DPLUS - 5
+   0458   04 5a         DMIN:   DW $ + 2
+   045a   e9                    SEX R9
+   045b   29                    DEC R9
+   045c   09                    LDN R9
+   045d   fb ff                 XRI $FF
+   045f   fc 01                 ADI $01
+   0461   73                    STXD
+   0462   09                    LDN R9
+   0463   fb ff                 XRI $FF
+   0465   7c 00                 ADCI $00
+   0467   59                    STR R9
+   0468   19                    INC R9
+   0469   19                    INC R9
+   046a   30 16                 BR MINOS
+                        	;
+   046c   84 4f 56 45           DB $84,"OVE",$D2 ; OVER
+   0470   d2            
+   0471   04 4f                 DW DMIN - 9
+   0473   04 75         OVER:   DW $ + 2
+   0475   29                    DEC R9
+   0476   29                    DEC R9
+   0477   49                    LDA R9
+   0478   19                    INC R9
+   0479   19                    INC R9
+   047a   19                    INC R9
+   047b   59                    STR R9
+   047c   29                    DEC R9
+   047d   29                    DEC R9
+   047e   29                    DEC R9
+   047f   49                    LDA R9
+   0480   19                    INC R9
+   0481   19                    INC R9
+   0482   19                    INC R9
+   0483   59                    STR R9
+   0484   29                    DEC R9
+   0485   dc                    SEP RC
+                        	;
+   0486   84 44 52 4f           DB $84,"DRO",$D0 ; DROP
+   048a   d0            
+   048b   04 6c                 DW OVER - 7
+   048d   04 8f         DROP:   DW $ + 2
+   048f   29                    DEC R9
+   0490   29                    DEC R9
+   0491   dc                    SEP RC
+                        	;
+   0492   84 53 57 41           DB $84,"SWA",$D0 ; SWAP
+   0496   d0            
+   0497   04 86                 DW DROP - 7
+   0499   04 9b         SWAP:   DW $ + 2
+   049b   89                    GLO R9
+   049c   a8                    PLO R8
+   049d   99                    GHI R9
+   049e   b8                    PHI R8
+   049f   28                    DEC R8
+   04a0   08                    LDN R8
+   04a1   52                    STR R2
+   04a2   19                    INC R9
+   04a3   09                    LDN R9
+   04a4   58                    STR R8
+   04a5   02                    LDN R2
+   04a6   59                    STR R9
+   04a7   29                    DEC R9
+   04a8   28                    DEC R8
+   04a9   08                    LDN R8
+   04aa   52                    STR R2
+   04ab   09                    LDN R9
+   04ac   58                    STR R8
+   04ad   02                    LDN R2
+   04ae   59                    STR R9
+   04af   dc                    SEP RC
+                        	;
+   04b0   83 44 55 d0           DB $83,"DU",$D0  ; DUP
+   04b4   04 92                 DW SWAP - 7
+   04b6   04 b8         DUP:    DW $ + 2
+   04b8   49                    LDA R9
+   04b9   19                    INC R9
+   04ba   59                    STR R9
+   04bb   29                    DEC R9
+   04bc   49                    LDA R9
+   04bd   19                    INC R9
+   04be   59                    STR R9
+   04bf   29                    DEC R9
+   04c0   dc                    SEP RC
+                        	;
+   04c1   82 2b a1              DB $82,$2B,$A1  ; +!
+   04c4   04 b0                 DW DUP - 6
+   04c6   04 c8         PLUSS:  DW $ + 2
+   04c8   49                    LDA R9
+   04c9   b8                    PHI R8
+   04ca   09                    LDN R9
+   04cb   a8                    PLO R8
+   04cc   29                    DEC R9
+   04cd   29                    DEC R9
+   04ce   18                    INC R8
+   04cf   e8                    SEX R8
+   04d0   09                    LDN R9
+   04d1   f4                    ADD
+   04d2   73                    STXD
+   04d3   29                    DEC R9
+   04d4   09                    LDN R9
+   04d5   74                    ADC
+   04d6   58                    STR R8
+   04d7   29            POP:    DEC R9
+   04d8   29                    DEC R9
+   04d9   dc                    SEP RC
+                        	;
+   04da   86 54 4f 47           DB $86,"TOGGL",$C5 ; TOGGLE
+   04de   47 4c c5      
+   04e1   04 c1                 DW PLUSS - 5
+   04e3   04 e5         TGLE:   DW $ + 2
+   04e5   19                    INC R9
+   04e6   09                    LDN R9
+   04e7   a7                    PLO R7
+   04e8   29                    DEC R9
+   04e9   29                    DEC R9
+   04ea   29                    DEC R9
+   04eb   49                    LDA R9
+   04ec   b8                    PHI R8
+   04ed   09                    LDN R9
+   04ee   a8                    PLO R8
+   04ef   e8                    SEX R8
+   04f0   87                    GLO R7
+   04f1   f3                    XOR
+   04f2   58                    STR R8
+   04f3   29                    DEC R9
+   04f4   30 d7                 BR POP
+                                ;        
+   04f6   81 c0                 DW $81C0          ; @
+   04f8   04 da                 DW TGLE - 9
+   04fa   04 fc         AT:     DW $ + 2
+   04fc   49                    LDA R9
+   04fd   b8                    PHI R8
+   04fe   09                    LDN R9
+   04ff   a8                    PLO R8
+   0500   29                    DEC R9
+   0501   48                    LDA R8
+   0502   59                    STR R9
+   0503   19                    INC R9
+   0504   08                    LDN R8
+   0505   59                    STR R9
+   0506   29                    DEC R9
+   0507   dc                    SEP RC
+                        	;
+   0508   82 43 c0              DB $82,$43,$C0  ; C@
+   050b   04 f6                 DW AT - 4
+   050d   05 0f         CAT:    DW $ + 2
+   050f   49                    LDA R9
+   0510   b8                    PHI R8
+   0511   09                    LDN R9
+   0512   a8                    PLO R8
+   0513   08                    LDN R8
+   0514   59                    STR R9
+   0515   29                    DEC R9
+   0516   f8 00                 LDI $00
+   0518   59                    STR R9
+   0519   dc                    SEP RC
+                        	;
+   051a   81 a1                 DW $81A1          ; !   STORE
+   051c   05 08                 DW CAT - 5
+   051e   05 20         EX:     DW $ + 2
+   0520   49                    LDA R9
+   0521   b8                    PHI R8
+   0522   09                    LDN R9
+   0523   a8                    PLO R8
+   0524   29                    DEC R9
+   0525   29                    DEC R9
+   0526   29                    DEC R9
+   0527   49                    LDA R9
+   0528   58                    STR R8
+   0529   18                    INC R8
+   052a   09                    LDN R9
+   052b   58                    STR R8
+   052c   29                    DEC R9
+   052d   29                    DEC R9
+   052e   29                    DEC R9
+   052f   dc                    SEP RC
+                        	;
+   0530   82 43 a1              DB $82,$43,$A1  ; C!   C STORE
+   0533   05 1a                 DW EX - 4
+   0535   05 37         CEX:    DW $ + 2
+   0537   49                    LDA R9
+   0538   b8                    PHI R8
+   0539   09                    LDN R9
+   053a   a8                    PLO R8
+   053b   29                    DEC R9
+   053c   29                    DEC R9
+   053d   09                    LDN R9
+   053e   58                    STR R8
+   053f   29                    DEC R9
+   0540   29                    DEC R9
+   0541   29                    DEC R9
+   0542   dc                    SEP RC
+                        ;
+                        ;
+                        ; THE FOLLOWING FOUR ROUTINES ARE USER DEFINED
+                        ; FOR THE CONSULE INPUT AND OUTPUT
+                        ;;HRJ THESE I/O ROUTINES ARE MODIFIED IN Lee Hart SOURC       
+                                ;
+                                ; SEND ASCII TO TERMINAL
+                                ;
+   0543   15 3d         IEMIT:  DW REMIT           ;HRJ CONSOLE OUT ADDR GOES HERE
+   0545   84 45 4d 49           DB $84,"EMI",$D4 ; EMIT
+   0549   d4            
+   054a   05 30                 DW CEX - 5
+   054c   05 75         EMIT:   DW NEST            ; OUTPUT CHAR TO
+   054e   05 43                 DW IEMIT           ; TERMINAL AND INCREMENT
+   0550   05 ad                 DW ONE             ; "OUT"
+   0552   06 8e                 DW FOUT            ; GET ADDRESS OF OUT
+   0554   04 c6                 DW PLUSS
+   0556   03 79                 DW SEMIS
+                        
+                        
+                        ;;HRJ WORDS NOT IN Hart SOURCE, REMOVED: CSEND, CSEND1
+                        ;; WORDS MODIFIED FROM FIG-FORTH: KEY, QTERM, CR
+                        
+   0558   83 4b 45 d9           DB $83,"KE",$D9  ; KEY   READ KEYBOARD
+   055c   05 45                 DW EMIT - 7
+   055e   15 b8         KEY:    DW RKEY          ;KEYBD IN ADDRESS GOES HERE 
+                                ;
+                                ; TEST FOR BREAK
+                                ;
+   0560   89 3f 54 45           DB $89,"?TERMINA",$CC ; ?TERMINAL
+   0564   52 4d 49 4e   
+   0568   41 cc         
+   056a   05 58         	  DW KEY - 6
+                        ; ASSUME THAT A FRAMING ERROR INDICATES
+                        ; THAT THE BREAK KEY IS OR WAS PRESSED.
+   056c   15 ca         QTERM:  DW RTERM
+                                ;
+                                ; SEND CR/LF TO TERMINAL
+                                ;
+   056e   82 43 d2              DB $82,$43,$D2  ; CR
+   0571   05 60                 DW QTERM - 12
+   0573   15 4a         CR:     DW RCR
+                                ;
+                                ;
+   0575   9a            NEST:   GHI RA
+   0576   52                    STR R2
+   0577   22                    DEC R2
+   0578   8a                    GLO RA
+   0579   52                    STR R2
+   057a   22                    DEC R2
+   057b   9b                    GHI RB
+   057c   ba                    PHI RA
+   057d   8b                    GLO RB
+   057e   aa                    PLO RA
+   057f   dc                    SEP RC
+                                ;
+   0580   19            VAR:    INC R9
+   0581   19                    INC R9
+   0582   9b                    GHI RB
+   0583   59                    STR R9
+   0584   19                    INC R9
+   0585   8b                    GLO RB
+   0586   59                    STR R9
+   0587   29                    DEC R9
+   0588   dc                    SEP RC
+                                ;
+   0589   19            CONST:  INC R9
+   058a   19                    INC R9
+   058b   4b                    LDA RB
+   058c   59                    STR R9
+   058d   19                    INC R9
+   058e   4b                    LDA RB
+   058f   59                    STR R9
+   0590   29                    DEC R9
+   0591   dc                    SEP RC
+                                ;
+   0592   19            USER:   INC R9
+   0593   19                    INC R9
+   0594   e9                    SEX R9
+   0595   4b                    LDA RB
+   0596   59                    STR R9
+   0597   19                    INC R9
+   0598   4b                    LDA RB
+   0599   59                    STR R9
+   059a   8d                    GLO RD
+   059b   f4                    ADD
+   059c   73                    STXD
+   059d   9d                    GHI RD
+   059e   74                    ADC
+   059f   59                    STR R9
+   05a0   dc                    SEP RC
+                        ;
+                        ; FROM HERE ON THE SOURCE IS GENERALLY
+                        ; DEFINED WITH FORTH WORD ADDRESSES
+                        ;
+   05a1   81 b0                 DW $81B0          ; 0
+   05a3   05 6e                 DW CR - 5
+   05a5   05 89         ZERO:   DW CONST
+   05a7   00 00                 DW $0000
+                                ;
+   05a9   81 b1                 DW $81B1          ; 1
+   05ab   05 a1                 DW ZERO - 4
+   05ad   05 89         ONE:    DW CONST
+   05af   00 01                 DW $0001
+                                ;
+   05b1   81 b2                 DW $81B2          ; 2
+   05b3   05 a9                 DW ONE - 4
+   05b5   05 89         TWO:    DW CONST
+   05b7   00 02                 DW $0002
+                                ;
+   05b9   82 42 cc              DB $82,$42,$CC  ; BL
+   05bc   05 b1                 DW TWO - 4         ; CONSTANT ASCII BLANK
+   05be   05 89         BL:     DW CONST
+   05c0   00 20                 DW $0020
+                                ;
+   05c2   83 43 2f cc           DB $83,$43,$2F,$CC ; C/L
+                                                        ; CHARACTERS PER LINE
+   05c6   05 b9                 DW BL - 5
+   05c8   05 89         CL:     DW CONST
+   05ca   00 40                 DW $0040          ; 64 (DECIMAL)
+                                ;
+   05cc   85 46 49 52           DB $85,"FIRS",$D4 ; FIRST
+   05d0   53 d4         
+   05d2   05 c2                 DW CL - 6
+   05d4   05 89         FIRST:  DW CONST
+   05d6   40 00                 DW FIRSTB
+                                ;
+   05d8   85 4c 49 4d           DB $85,"LIMI",$D4 ; LIMIT
+   05dc   49 d4         
+   05de   05 cc                 DW FIRST - 8
+   05e0   05 89         LIMIT:  DW CONST
+   05e2   6c 2c                 DW LIMITB
+                                ;
+   05e4   85 42 2f 42           DB $85,"B/BU",$C6 ; B/BUF
+   05e8   55 c6         
+                        	                       ; BYTES PER BUFFER
+   05ea   05 d8                 DW LIMIT - 8
+   05ec   05 89         BBUF:   DW CONST
+   05ee   04 00                 DW $0400          ; 1024 BYTES/BUFFER
+                                ;
+   05f0   85 42 2f 53           DB $85,"B/SC",$D2 ; B/SCR
+   05f4   43 d2         
+                        	                       ; BUFFERS/SCREEN
+   05f6   05 e4                 DW BBUF - 8
+   05f8   05 89         BSCR:   DW CONST
+   05fa   00 01                 DW $0001
+                                ;
+   05fc   86 4f 52 49           DB $86,"ORIGI",$CE ; ORIGIN
+   0600   47 49 ce      
+   0603   05 f0                 DW BSCR - 8
+   0605   05 89         ORGN:   DW CONST
+   0607   00 5e                 DW $005E
+                                ;
+   0609   87 2b 4f 52           DB $87,"+ORIGI",$CE ; +ORIGIN
+   060d   49 47 49 ce   
+                        
+   0611   05 fc                 DW ORGN - 9
+   0613   05 75         PORGN:  DW NEST
+   0615   06 05                 DW ORGN
+   0617   03 f7                 DW PLUS
+   0619   03 79                 DW SEMIS
+                                ;
+                                ; USER VARIABLES
+                                ;
+   061b   82 53 b0              DB $82,$53,$B0  ; S0
+   061e   06 09                 DW PORGN - 10
+   0620   05 92         SO:     DW USER
+   0622   00 06                 DW $0006
+                                ;
+   0624   82 52 b0              DB $82,$52,$B0  ; R0
+   0627   06 1b                 DW SO - 5
+   0629   05 92         RO:     DW USER
+   062b   00 08                 DW $0008
+                                ;
+   062d   83 54 49 c2           DB $83,"TI",$C2  ; TIB
+   0631   06 24                 DW RO - 5
+   0633   05 92         TIB:    DW USER
+   0635   00 0a                 DW $000A
+                                ;
+   0637   85 57 49 44           DB $85,"WIDT",$C8 ; WIDTH
+   063b   54 c8         
+   063d   06 2d                 DW TIB - 6
+   063f   05 92         WIDTH:  DW USER
+   0641   00 0c                 DW $000C
+                                ;
+   0643   87 57 41 52           DB $87,"WARNIN",$C7 ; WARNING
+   0647   4e 49 4e c7   
+   064b   06 37         	DW WIDTH - 8
+   064d   05 92         WRNG:   DW USER
+   064f   00 0e                 DW $000E
+                                ;
+   0651   85 46 45 4e           DB $85,"FENC",$C5 ; FENCE   FORGET BOUNDRY
+   0655   43 c5         
+   0657   06 43                 DW WRNG - 10
+   0659   05 92         FNCE:   DW USER
+   065b   00 10                 DW $0010
+                                ;
+   065d   82 44 d0              DB $82,$44,$D0  ; DP
+   0660   06 51                 DW FNCE - 8
+   0662   05 92         DP:     DW USER
+   0664   00 12                 DW $0012
+                                ;
+   0666   88 56 4f 43           DB $88,"VOC-LIN",$CB ; VOC-LINK
+   066a   2d 4c 49 4e   
+   066e   cb            
+   066f   06 5d         	DW DP - 5
+   0671   05 92         VL:     DW USER
+   0673   00 14                 DW $0014
+                                ;
+   0675   83 42 4c cb           DB $83,$42,$4C,$CB ; BLK
+   0679   06 66                 DW VL - 11
+   067b   05 92         BLK:    DW USER
+   067d   00 16                 DW $0016
+                                ;
+   067f   82 49 ce              DB $82,$49,$CE  ; IN
+   0682   06 75                 DW BLK - 6
+   0684   05 92         FIN:    DW USER
+   0686   00 18                 DW $0018
+                                ;
+   0688   83 4f 55 d4           DB $83,"OU",$D4  ; OUT
+   068c   06 7f                 DW FIN - 5
+   068e   05 92         FOUT:   DW USER
+   0690   00 1a                 DW $001A
+                                ;
+   0692   83 53 43 d2           DB $83,"SC",$D2  ; SCR
+   0696   06 88                 DW FOUT - 6
+   0698   05 92         FSCR:   DW USER
+   069a   00 1c                 DW $001C
+                                ;
+   069c   86 4f 46 46           DB $86,"OFFSE",$D4 ; OFFSET
+   06a0   53 45 d4      
+   06a3   06 92                 DW FSCR - 6
+   06a5   05 92         OFST:   DW USER
+   06a7   00 1e                 DW $001E
+                                ;
+   06a9   87 43 4f 4e           DB $87,"CONTEX",$D4 ; CONTEXT
+   06ad   54 45 58 d4   
+   06b1   06 9c         	DW OFST - 9
+   06b3   05 92         CNTX:   DW USER
+   06b5   00 20                 DW $0020
+                                ;
+   06b7   87 43 55 52           DB $87,"CURREN",$D4 ; CURRENT
+   06bb   52 45 4e d4   
+   06bf   06 a9         	DW CNTX - 10
+   06c1   05 92         CRNT:   DW USER
+   06c3   00 22                 DW $0022
+                                ;
+   06c5   85 53 54 41           DB $85,"STAT",$C5 ; STATE
+   06c9   54 c5         
+   06cb   06 b7                 DW CRNT - 10
+   06cd   05 92         STT:    DW USER
+   06cf   00 24                 DW $0024
+                                ;
+   06d1   84 42 41 53           DB $84,"BAS",$C5 ; BASE
+   06d5   c5            
+   06d6   06 c5                 DW STT - 8
+   06d8   05 92         BASE:   DW USER
+   06da   00 26                 DW $0026
+                                ;
+   06dc   83 44 50 cc           DB $83,$44,$50,$CC ; DPL
+   06e0   06 d1                 DW BASE - 7
+   06e2   05 92         DPL:    DW USER
+   06e4   00 28                 DW $0028
+                                ;
+   06e6   83 46 4c c4           DB $83,$46,$4C,$C4 ; FLD
+   06ea   06 dc                 DW DPL - 6
+   06ec   05 92         FLD:    DW USER
+   06ee   00 2a                 DW $002A
+                                ;
+   06f0   83 43 53 d0           DB $83,$43,$53,$D0 ; CSP
+   06f4   06 e6                 DW FLD - 6
+   06f6   05 92         CSP:    DW USER
+   06f8   00 2c                 DW $002C
+                                ;
+   06fa   82 52 a3              DB $82,$52,$A3  ; R#
+   06fd   06 f0                 DW CSP - 6
+   06ff   05 92         RNU:    DW USER
+   0701   00 2e                 DW $002E
+                                ;
+   0703   83 48 4c c4           DB $83,$48,$4C,$C4 ; HLD
+   0707   06 fa                 DW RNU - 5
+   0709   05 92         HLD:    DW USER
+   070b   00 30                 DW $0030
+   070d   82 44 d6              DB $82,$44,$D6  ; DV
+   0710   07 03                 DW HLD - 6         ; 3 BYTE VECTOR AREA
+                        ; USED DURING DISK OPERATIONS
+   0712   05 92         DV:     DW USER
+   0714   00 32                 DW $0032
+                                ;
+                                ; END OF USER VARIABLES
+                                ;
+   0716   82 31 ab              DB $82,$31,$AB  ; 1+
+   0719   07 0d                 DW DV - 5
+   071b   05 75         PLUS1:  DW NEST
+   071d   05 ad                 DW ONE
+   071f   03 f7                 DW PLUS
+   0721   03 79                 DW SEMIS
+                                ;
+   0723   82 32 ab              DB $82,$32,$AB  ; 2+
+   0726   07 16                 DW PLUS1 - 5
+   0728   05 75         PLUS2:  DW NEST
+   072a   05 b5                 DW TWO
+   072c   03 f7                 DW PLUS
+   072e   03 79                 DW SEMIS
+                                ;
+   0730   84 48 45 52           DB $84,"HER",$C5 ; HERE
+   0734   c5            
+   0735   07 23                 DW PLUS2 - 5
+   0737   05 75         HERE:   DW NEST
+   0739   06 62                 DW DP
+   073b   04 fa                 DW AT
+   073d   03 79                 DW SEMIS
+                                ;
+   073f   85 41 4c 4c           DB $85,"ALLO",$D4 ; ALLOT
+   0743   4f d4         
+   0745   07 30                 DW HERE - 7
+   0747   05 75         ALLOT:  DW NEST
+   0749   06 62                 DW DP
+   074b   04 c6                 DW PLUSS
+   074d   03 79                 DW SEMIS
+                                ;
+   074f   81 ac                 DW $81AC          ; , (COMMA)
+   0751   07 3f                 DW ALLOT - 8
+   0753   05 75         COMMA:  DW NEST
+   0755   07 37                 DW HERE
+   0757   05 1e                 DW EX
+   0759   05 b5                 DW TWO
+   075b   07 47                 DW ALLOT
+   075d   03 79                 DW SEMIS
+                                ;
+   075f   82 43 ac              DB $82,$43,$AC  ; C,
+   0762   07 4f                 DW COMMA - 4
+   0764   05 75         CCMA:   DW NEST
+   0766   07 37                 DW HERE
+   0768   05 35                 DW CEX
+   076a   05 ad                 DW ONE
+   076c   07 47                 DW ALLOT
+   076e   03 79                 DW SEMIS
+                                ;
+   0770   81 ad                 DW $81AD          ; - (MINUS SIGN)
+   0772   07 5f                 DW CCMA - 5
+   0774   05 75         MINS:   DW NEST
+   0776   04 12                 DW MINUS
+   0778   03 f7                 DW PLUS
+   077a   03 79                 DW SEMIS
+                                ;
+   077c   81 bd                 DW $81BD          ; = (EQUAL SIGN)
+   077e   07 70                 DW MINS - 4
+   0780   05 75         EQL:    DW NEST
+   0782   07 74                 DW MINS
+   0784   03 d2                 DW ZEQAL
+   0786   03 79                 DW SEMIS
+                                ;
+   0788   81 bc                 DW $81BC          ; < (LESS THAN SIGN)
+   078a   07 7c                 DW EQL - 4
+   078c   05 75         LESS:   DW NEST
+   078e   07 74                 DW MINS
+   0790   03 eb                 DW ZLESS
+   0792   03 79                 DW SEMIS
+                                ;
+   0794   81 be                 DW $81BE          ; > (GTR THAN SIGN)
+   0796   07 88                 DW LESS - 4
+   0798   05 75         GTR:    DW NEST
+   079a   04 99                 DW SWAP
+   079c   07 8c                 DW LESS
+   079e   03 79                 DW SEMIS
+                                ;
+   07a0   83 52 4f d4           DB $83,$52,$4F,$D4 ; ROT
+   07a4   07 94                 DW GTR - 4
+   07a6   05 75         ROT:    DW NEST
+   07a8   03 9d                 DW GR
+   07aa   04 99                 DW SWAP
+   07ac   03 ad                 DW RG
+   07ae   04 99                 DW SWAP
+   07b0   03 79                 DW SEMIS
+                                ;
+   07b2   85 53 50 41           DB $85,"SPAC",$C5 ; SPACE
+   07b6   43 c5         
+   07b8   07 a0                 DW ROT - 6
+   07ba   05 75         SPC:    DW NEST
+   07bc   05 be                 DW BL
+   07be   05 4c                 DW EMIT
+   07c0   03 79                 DW SEMIS
+                                ;
+   07c2   84 2d 44 55           DB $84,"-DU",$D0 ; -DUP
+   07c6   d0            
+   07c7   07 b2                 DW SPC - 8
+   07c9   05 75         MDUP:   DW NEST
+   07cb   04 b6                 DW DUP
+   07cd   00 d0                 DW ZBRCH
+   07cf   07 d3                 DW $ + 4
+   07d1   04 b6                 DW DUP
+   07d3   03 79                 DW SEMIS
+                                ;
+   07d5   88 54 52 41           DB $88,"TRAVERS",$C5 ; TRAVERSE
+   07d9   56 45 52 53   
+   07dd   c5            
+   07de   07 c2         	DW MDUP - 7
+   07e0   05 75         TRVS:   DW NEST
+   07e2   04 99                 DW SWAP
+   07e4   04 73         TR1:    DW OVER
+   07e6   03 f7                 DW PLUS
+   07e8   00 86                 DW LIT
+   07ea   00 7f                 DW $007F
+   07ec   04 73                 DW OVER
+   07ee   05 0d                 DW CAT
+   07f0   07 8c                 DW LESS
+   07f2   00 d0                 DW ZBRCH
+   07f4   07 e4                 DW TR1
+   07f6   04 99                 DW SWAP
+   07f8   04 8d                 DW DROP
+   07fa   03 79                 DW SEMIS
+                                ;
+                                ;
+   07fc   86 4c 41 54           DB $86,"LATES",$D4 ; LATEST
+   0800   45 53 d4      
+   0803   07 d5                 DW TRVS - 11
+   0805   05 75         LTST:   DW NEST
+   0807   06 c1                 DW CRNT
+   0809   04 fa                 DW AT
+   080b   04 fa                 DW AT
+   080d   03 79                 DW SEMIS
+                                ;
+                                ;
+   080f   83 4c 46 c1           DB $83,$4C,$46,$C1 ; LFA
+   0813   07 fc                 DW LTST - 9        ; LINK FIELD ADDRESS
+   0815   05 75         LFA:    DW NEST
+   0817   00 86                 DW LIT
+   0819   00 04                 DW $0004
+   081b   07 74                 DW MINS
+   081d   03 79                 DW SEMIS
+                                ;
+   081f   83 43 46 c1           DB $83,$43,$46,$C1 ; CFA
+   0823   08 0f                 DW LFA - 6         ; CODE FIELD ADDRESS
+   0825   05 75         CFA:    DW NEST
+   0827   05 b5                 DW TWO
+   0829   07 74                 DW MINS
+   082b   03 79                 DW SEMIS
+                                ;
+                                ;
+   082d   83 4e 46 c1           DB $83,$4E,$46,$C1 ; NFA
+   0831   08 1f                 DW CFA - 6         ; NAME FIELD ADDRESS
+   0833   05 75         NFA:    DW NEST
+   0835   00 86                 DW LIT
+   0837   00 05                 DW $0005
+   0839   07 74                 DW MINS
+   083b   00 86                 DW LIT
+   083d   ff ff                 DW $FFFF
+   083f   07 e0                 DW TRVS
+   0841   03 79                 DW SEMIS
+                                ;
+                                ;
+   0843   83 50 46 c1           DB $83,$50,$46,$C1 ; PFA
+   0847   08 2d                 DW NFA - 6         ; PARAMETER FIELD ADDRESS
+   0849   05 75         PFA:    DW NEST
+   084b   05 ad                 DW ONE
+   084d   07 e0                 DW TRVS
+   084f   00 86                 DW LIT
+   0851   00 05                 DW $0005
+   0853   03 f7                 DW PLUS
+   0855   03 79                 DW SEMIS
+                                ;
+                                ;
+   0857   84 21 43 53           DB $84,$21,$43,$53,$D0 ; !CSP
+   085b   d0            
+   085c   08 43                 DW PFA - 6
+   085e   05 75         DCSP:   DW NEST
+   0860   03 3d                 DW FSPAT
+   0862   06 f6                 DW CSP
+   0864   05 1e                 DW EX
+   0866   03 79                 DW SEMIS
+                                ;
+                                ;
+   0868   86 3f 45 52           DB $86,"?ERRO",$D2 ; ?ERROR
+   086c   52 4f d2      
+   086f   08 57                 DW DCSP - 7
+   0871   05 75         QERR:   DW NEST
+   0873   04 99                 DW SWAP
+   0875   00 d0                 DW ZBRCH
+   0877   08 7f                 DW $ + 8
+   0879   0c 98                 DW ERROR
+   087b   00 bd                 DW BRCH
+   087d   08 81                 DW $ + 4
+   087f   04 8d                 DW DROP
+   0881   03 79                 DW SEMIS
+                                ;
+                                ;
+   0883   85 3f 43 4f           DB $85,"?COM",$D0 ; ?COMP
+   0887   4d d0         
+   0889   08 68                 DW QERR - 9
+   088b   05 75         QCMP:   DW NEST
+   088d   06 cd                 DW STT
+   088f   04 fa                 DW AT
+   0891   03 d2                 DW ZEQAL
+   0893   00 86                 DW LIT
+   0895   00 11                 DW $0011
+   0897   08 71                 DW QERR
+   0899   03 79                 DW SEMIS
+                                ;
+                                ;
+   089b   85 3f 45 58           DB $85,"?EXE",$C3 ; ?EXEC
+   089f   45 c3         
+   08a1   08 83                 DW QCMP - 8
+   08a3   05 75         EXC:    DW NEST
+   08a5   06 cd                 DW STT
+   08a7   04 fa                 DW AT
+   08a9   00 86                 DW LIT
+   08ab   00 12                 DW $0012
+   08ad   08 71                 DW QERR
+   08af   03 79                 DW SEMIS
+                                ;
+                                ;
+   08b1   86 3f 50 41           DB $86,"?PAIR",$D3 ; ?PAIRS
+   08b5   49 52 d3      
+   08b8   08 9b                 DW EXC - 8
+   08ba   05 75         QPR:    DW NEST
+   08bc   07 74                 DW MINS
+   08be   00 86                 DW LIT
+   08c0   00 13                 DW $0013
+   08c2   08 71                 DW QERR
+   08c4   03 79                 DW SEMIS
+                                ;
+                                ;
+   08c6   84 3f 43 53           DB $84,$3F,$43,$53,$D0 ; ?CSP
+   08ca   d0            
+   08cb   08 b1                 DW QPR - 9
+   08cd   05 75         QCSP:   DW NEST
+   08cf   03 3d                 DW FSPAT
+   08d1   06 f6                 DW CSP
+   08d3   04 fa                 DW AT
+   08d5   07 74                 DW MINS
+   08d7   00 86                 DW LIT
+   08d9   00 14                 DW $0014
+   08db   08 71                 DW QERR
+   08dd   03 79                 DW SEMIS
+                                ;
+                                ;
+   08df   88 3f 4c 4f           DB $88,"?LOADIN",$C7 ; ?LOADING
+   08e3   41 44 49 4e   
+   08e7   c7            
+                        
+   08e8   08 c6                 DW QCSP - 7
+   08ea   05 75         QLDG:   DW NEST
+   08ec   06 7b                 DW BLK
+   08ee   04 fa                 DW AT
+   08f0   03 d2                 DW ZEQAL
+   08f2   00 86                 DW LIT
+   08f4   00 16                 DW $0016
+   08f6   08 71                 DW QERR
+   08f8   03 79                 DW SEMIS
+                                ;
+                                ;
+   08fa   87 43 4f 4d           DB $87,"COMPIL",$C5 ; COMPILE
+   08fe   50 49 4c c5   
+   0902   08 df         	DW QLDG - 11
+   0904   05 75         CMPL:   DW NEST
+   0906   08 8b                 DW QCMP
+   0908   03 ad                 DW RG
+   090a   04 b6                 DW DUP
+   090c   07 28                 DW PLUS2
+   090e   03 9d                 DW GR
+   0910   04 fa                 DW AT
+   0912   07 53                 DW COMMA
+   0914   03 79                 DW SEMIS
+                                ;
+                        	;
+   0916   c1 db                 DW $C1DB          ; [   LEFT BRACKET
+   0918   08 fa                 DW CMPL - 10
+   091a   05 75         LB:     DW NEST
+   091c   05 a5                 DW ZERO
+   091e   06 cd                 DW STT
+   0920   05 1e                 DW EX
+   0922   03 79                 DW SEMIS
+                                ;
+                                ;
+   0924   81 dd                 DW $81DD          ; ]   RIGHT BRACKET
+   0926   09 16                 DW LB - 4
+   0928   05 75         RBK:    DW NEST
+   092a   00 86                 DW LIT
+   092c   00 c0                 DW $00C0
+   092e   06 cd                 DW STT
+   0930   05 1e                 DW EX
+   0932   03 79                 DW SEMIS
+                                ;
+                                ;
+   0934   86 53 4d 55           DB $86,"SMUDG",$C5 ; SMUDGE
+   0938   44 47 c5      
+   093b   09 24                 DW RBK - 4
+   093d   05 75         SMDG:   DW NEST
+   093f   08 05                 DW LTST
+   0941   00 86                 DW LIT
+   0943   00 20                 DW $0020
+   0945   04 e3                 DW TGLE
+   0947   03 79                 DW SEMIS
+                                ;
+                                ;
+   0949   83 48 45 d8           DB $83,$48,$45,$D8 ; HEX
+   094d   09 34                 DW SMDG - 9
+   094f   05 75         MHEX:   DW NEST
+   0951   00 86                 DW LIT
+   0953   00 10                 DW $0010
+   0955   06 d8                 DW BASE
+   0957   05 1e                 DW EX
+   0959   03 79                 DW SEMIS
+                                ;
+                                ;
+   095b   87 44 45 43           DB $87,"DECIMA",$CC ; DECIMAL
+   095f   49 4d 41 cc   
+   0963   09 49                 DW MHEX - 6
+   0965   05 75         MDCML:  DW NEST
+   0967   00 86                 DW LIT
+   0969   00 0a                 DW $000A
+   096b   06 d8                 DW BASE
+   096d   05 1e                 DW EX
+   096f   03 79                 DW SEMIS
+                                ;
+                                ;
+   0971   87 28 3b 43           DB $87,"(;CODE",$A9 ; (;CODE)
+   0975   4f 44 45 a9   
+   0979   09 5b                 DW MDCML - 10
+   097b   05 75         PCODE:  DW NEST
+   097d   03 ad                 DW RG
+   097f   08 05                 DW LTST
+   0981   08 49                 DW PFA
+   0983   08 25                 DW CFA
+   0985   05 1e                 DW EX
+   0987   03 79                 DW SEMIS
+                                ;
+                                ;
+   0989   c5 3b 43 4f           DB $C5,";COD",$C5 ; ;CODE (IMMEDIATE)
+   098d   44 c5         
+   098f   09 71                 DW PCODE - 10
+   0991   05 75         CODE:   DW NEST
+   0993   08 cd                 DW QCSP
+   0995   09 04                 DW CMPL
+   0997   09 7b                 DW PCODE
+   0999   09 1a                 DW LB
+   099b   09 3d                 DW SMDG
+   099d   03 79                 DW SEMIS
+                                ;
+                                ;
+   099f   85 43 4f 55           DB $85,"COUN",$D4 ; COUNT
+   09a3   4e d4         
+   09a5   09 89                 DW CODE - 8
+   09a7   05 75         CNT:    DW NEST
+   09a9   04 b6                 DW DUP
+   09ab   07 1b                 DW PLUS1
+   09ad   04 99                 DW SWAP
+   09af   05 0d                 DW CAT
+   09b1   03 79                 DW SEMIS
+                                ;
+                                ;
+   09b3   84 54 59 50           DB $84,"TYP",$C5 ; TYPE
+   09b7   c5            
+   09b8   09 9f                 DW CNT - 8
+   09ba   05 75         TYPE:   DW NEST
+   09bc   07 c9                 DW MDUP
+   09be   00 d0                 DW ZBRCH
+   09c0   09 d8                 DW $ + 24
+   09c2   04 73                 DW OVER
+   09c4   03 f7                 DW PLUS
+   09c6   04 99                 DW SWAP
+   09c8   01 50                 DW PDO
+   09ca   03 bd         TYP1:   DW R
+   09cc   05 0d                 DW CAT
+   09ce   05 4c                 DW EMIT
+   09d0   00 ec                 DW LUPE
+   09d2   09 ca                 DW TYP1
+   09d4   00 bd                 DW BRCH
+   09d6   09 da                 DW $ + 4
+   09d8   04 8d                 DW DROP
+   09da   03 79                 DW SEMIS
+                                ;
+                                ;
+   09dc   89 2d 54 52           DB $89,"-TRAILIN",$C7 ; -TRAILING
+   09e0   41 49 4c 49   
+   09e4   4e c7         
+   09e6   09 b3                 DW TYPE - 7
+   09e8   05 75         TRLG:   DW NEST
+   09ea   04 b6                 DW DUP
+   09ec   05 a5                 DW ZERO
+   09ee   01 50                 DW PDO
+   09f0   04 73         TRL1:   DW OVER
+   09f2   04 73                 DW OVER
+   09f4   03 f7                 DW PLUS
+   09f6   05 ad                 DW ONE
+   09f8   07 74                 DW MINS
+   09fa   05 0d                 DW CAT
+   09fc   05 be                 DW BL
+   09fe   07 74                 DW MINS
+   0a00   00 d0                 DW ZBRCH
+   0a02   0a 0a                 DW $ + 8
+   0a04   03 89                 DW LVE
+   0a06   00 bd                 DW BRCH
+   0a08   0a 0e                 DW $ + 6
+   0a0a   05 ad                 DW ONE        
+   0a0c   07 74                 DW MINS
+   0a0e   00 ec                 DW LUPE
+   0a10   09 f0                 DW TRL1
+   0a12   03 79                 DW SEMIS
+                                ;
+                                ;
+   0a14   84 28 2e 22           DB $84,$28,$2E,$22,$A9 ; (.")
+   0a18   a9            
+   0a19   09 dc                 DW TRLG - 12
+   0a1b   05 75         PDQ:    DW NEST
+   0a1d   03 bd                 DW R
+   0a1f   09 a7                 DW CNT
+   0a21   04 b6                 DW DUP
+   0a23   07 1b                 DW PLUS1
+   0a25   03 ad                 DW RG
+   0a27   03 f7                 DW PLUS
+   0a29   03 9d                 DW GR
+   0a2b   09 ba                 DW TYPE
+   0a2d   03 79                 DW SEMIS
+                                ;
+                                ;
+   0a2f   86 45 58 50           DB $86,"EXPEC",$D4 ; EXPECT
+   0a33   45 43 d4      
+   0a36   0a 14                 DW PDQ - 7
+   0a38   05 75         EXPT:   DW NEST
+   0a3a   04 73                 DW OVER
+   0a3c   03 f7                 DW PLUS
+   0a3e   04 73                 DW OVER
+   0a40   01 50                 DW PDO
+   0a42   05 5e         EXPT4:  DW KEY
+   0a44   04 b6                 DW DUP
+   0a46   00 86                 DW LIT
+   0a48   00 0e                 DW $000E
+   0a4a   06 13                 DW PORGN
+   0a4c   04 fa                 DW AT
+   0a4e   07 80                 DW EQL
+   0a50   00 d0                 DW ZBRCH
+   0a52   0a 72                 DW EXPT1
+   0a54   04 8d                 DW DROP
+   0a56   00 86                 DW LIT
+   0a58   00 08                 DW $0008
+   0a5a   04 73                 DW OVER
+   0a5c   03 bd                 DW R
+   0a5e   07 80                 DW EQL
+   0a60   04 b6                 DW DUP
+   0a62   03 ad                 DW RG
+   0a64   05 b5                 DW TWO
+   0a66   07 74                 DW MINS
+   0a68   03 f7                 DW PLUS
+   0a6a   03 9d                 DW GR
+   0a6c   07 74                 DW MINS
+   0a6e   00 bd                 DW BRCH
+   0a70   0a 98                 DW EXPT2
+   0a72   04 b6         EXPT1:  DW DUP
+   0a74   00 86                 DW LIT
+   0a76   00 0d                 DW $000D
+   0a78   07 80                 DW EQL
+   0a7a   00 d0                 DW ZBRCH
+   0a7c   0a 8a                 DW EXPT3
+   0a7e   03 89                 DW LVE
+   0a80   04 8d                 DW DROP
+   0a82   05 be                 DW BL
+   0a84   05 a5                 DW ZERO
+   0a86   00 bd                 DW BRCH
+   0a88   0a 8c                 DW EXPT5
+   0a8a   04 b6         EXPT3:  DW DUP
+   0a8c   03 bd         EXPT5:  DW R
+   0a8e   05 35                 DW CEX
+   0a90   05 a5                 DW ZERO
+   0a92   03 bd                 DW R
+   0a94   07 1b                 DW PLUS1
+   0a96   05 1e                 DW EX
+   0a98   05 4c         EXPT2:  DW EMIT
+   0a9a   00 ec                 DW LUPE
+   0a9c   0a 42                 DW EXPT4
+   0a9e   04 8d                 DW DROP
+   0aa0   03 79                 DW SEMIS
+                                ;
+                                ;
+   0aa2   85 51 55 45           DB $85,"QUER",$D9 ; QUERY
+   0aa6   52 d9         
+   0aa8   0a 2f                 DW EXPT - 9         ; INPUT LINE OF TEXT
+   0aaa   05 75         QUER:   DW NEST
+   0aac   06 33                 DW TIB
+   0aae   04 fa                 DW AT
+   0ab0   00 86                 DW LIT
+   0ab2   00 50                 DW $0050
+   0ab4   0a 38                 DW EXPT
+   0ab6   05 a5                 DW ZERO
+   0ab8   06 84                 DW FIN
+   0aba   05 1e                 DW EX
+   0abc   03 79                 DW SEMIS
+                                ;
+                                ;
+   0abe   c1 80                 DW $C180           ; X   (IMMEDIATE)
+   0ac0   0a a2                 DW QUER - 8
+   0ac2   05 75         X:      DW NEST
+   0ac4   06 7b                 DW BLK
+   0ac6   04 fa                 DW AT
+   0ac8   00 d0                 DW ZBRCH
+   0aca   0a f2                 DW X2
+   0acc   05 ad                 DW ONE
+   0ace   06 7b                 DW BLK
+   0ad0   04 c6                 DW PLUSS
+   0ad2   05 a5                 DW ZERO
+   0ad4   06 84                 DW FIN
+   0ad6   05 1e                 DW EX
+   0ad8   06 7b                 DW BLK
+   0ada   04 fa                 DW AT
+   0adc   00 86                 DW LIT
+   0ade   00 07                 DW $0007
+   0ae0   02 f3                 DW FAND
+   0ae2   03 d2                 DW ZEQAL
+   0ae4   00 d0                 DW ZBRCH
+   0ae6   0a ee                 DW X1
+   0ae8   08 a3                 DW EXC
+   0aea   03 ad                 DW RG
+   0aec   04 8d                 DW DROP
+   0aee   00 bd         X1:     DW BRCH
+   0af0   0a f6                 DW XEND
+   0af2   03 ad         X2:     DW RG
+   0af4   04 8d                 DW DROP
+   0af6   03 79         XEND:   DW SEMIS
+                                ;
+                                ;
+   0af8   84 46 49 4c           DB $84,"FIL",$CC ; FILL   FILL MEMORY
+   0afc   cc            
+   0afd   0a be                 DW X - 4
+   0aff   05 75         FILL:   DW NEST
+   0b01   04 99                 DW SWAP
+   0b03   03 9d                 DW GR
+   0b05   04 73                 DW OVER
+   0b07   05 35                 DW CEX
+   0b09   04 b6                 DW DUP
+   0b0b   07 1b                 DW PLUS1
+   0b0d   03 ad                 DW RG
+   0b0f   05 ad                 DW ONE
+   0b11   07 74                 DW MINS
+   0b13   02 46                 DW CMOVE
+   0b15   03 79                 DW SEMIS
+                                ;
+                                ;
+   0b17   85 45 52 41           DB $85,"ERAS",$C5 ; ERASE   ZERO MEMORY
+   0b1b   53 c5         
+   0b1d   0a f8                 DW FILL - 7
+   0b1f   05 75         ERS:    DW NEST
+   0b21   05 a5                 DW ZERO
+   0b23   0a ff                 DW FILL
+   0b25   03 79                 DW SEMIS
+                                ;
+                                ;
+   0b27   86 42 4c 41           DB $86,"BLANK",$D3 ; BLANKS
+   0b2b   4e 4b d3      
+   0b2e   0b 17                 DW ERS - 8           ; FILL MEMORY WITH
+   0b30   05 75         BLNK:   DW NEST              ; ASCII BLANKS
+   0b32   05 be                 DW BL
+   0b34   0a ff                 DW FILL
+   0b36   03 79                 DW SEMIS
+                                ;
+                                ;
+   0b38   84 48 4f 4c           DB $84,"HOL",$C4 ; HOLD
+   0b3c   c4            
+   0b3d   0b 27                 DW BLNK - 9
+   0b3f   05 75         HOLD:   DW NEST
+   0b41   00 86                 DW LIT
+   0b43   ff ff                 DW $FFFF          ; -1
+   0b45   07 09                 DW HLD
+   0b47   04 c6                 DW PLUSS
+   0b49   07 09                 DW HLD
+   0b4b   04 fa                 DW AT
+   0b4d   05 35                 DW CEX
+   0b4f   03 79                 DW SEMIS
+                                ;
+                                ;
+   0b51   83 50 41 c4           DB $83,"PA",$C4  ; PAD
+   0b55   0b 38                 DW HOLD - 7
+   0b57   05 75         PAD:    DW NEST
+   0b59   07 37                 DW HERE
+   0b5b   00 86                 DW LIT
+   0b5d   00 44                 DW $0044
+   0b5f   03 f7                 DW PLUS
+   0b61   03 79                 DW SEMIS
+                                ;
+                                ;
+   0b63   84 57 4f 52           DB $84,"WOR",$C4 ; WORD
+   0b67   c4            
+   0b68   0b 51                 DW PAD - 6
+   0b6a   05 75         WORD:   DW NEST
+   0b6c   06 7b                 DW BLK
+   0b6e   04 fa                 DW AT
+   0b70   00 d0                 DW ZBRCH
+   0b72   0b 7e                 DW WD1
+   0b74   06 7b                 DW BLK
+   0b76   04 fa                 DW AT
+U  0b78   00 00                 DW BLOCK
+   0b7a   00 bd                 DW BRCH
+   0b7c   0b 82                 DW WD2
+   0b7e   06 33         WD1:    DW TIB
+   0b80   04 fa                 DW AT
+   0b82   06 84         WD2:    DW FIN
+   0b84   04 fa                 DW AT
+   0b86   03 f7                 DW PLUS
+   0b88   04 99                 DW SWAP
+   0b8a   01 fe                 DW ENCL
+   0b8c   07 37                 DW HERE
+   0b8e   00 86                 DW LIT
+   0b90   00 22                 DW $0022
+   0b92   0b 30                 DW BLNK
+   0b94   06 84                 DW FIN
+   0b96   04 c6                 DW PLUSS
+   0b98   04 73                 DW OVER
+   0b9a   07 74                 DW MINS
+   0b9c   03 9d                 DW GR
+   0b9e   03 bd                 DW R
+   0ba0   07 37                 DW HERE
+   0ba2   05 35                 DW CEX
+   0ba4   03 f7                 DW PLUS
+   0ba6   07 37                 DW HERE
+   0ba8   07 1b                 DW PLUS1
+   0baa   03 ad                 DW RG
+   0bac   02 46                 DW CMOVE
+   0bae   03 79                 DW SEMIS
+                                ;
+                                ;
+   0bb0   88 28 4e 55           DB $88,"(NUMBER",$A9 ; (NUMBER)
+   0bb4   4d 42 45 52   
+   0bb8   a9            
+   0bb9   0b 63                 DW WORD - 7
+   0bbb   05 75         PNMBR:  DW NEST
+   0bbd   07 1b                 DW PLUS1
+   0bbf   04 b6                 DW DUP
+   0bc1   03 9d                 DW GR
+   0bc3   05 0d                 DW CAT
+   0bc5   06 d8                 DW BASE
+   0bc7   04 fa                 DW AT
+   0bc9   01 6b                 DW DGT
+   0bcb   00 d0                 DW ZBRCH
+   0bcd   0b f9                 DW PNM2
+   0bcf   04 99                 DW SWAP
+   0bd1   06 d8                 DW BASE
+   0bd3   04 fa                 DW AT
+   0bd5   02 78                 DW USTAR
+   0bd7   04 8d                 DW DROP
+   0bd9   07 a6                 DW ROT
+   0bdb   06 d8                 DW BASE
+   0bdd   04 fa                 DW AT
+   0bdf   02 78                 DW USTAR
+   0be1   04 2a                 DW DPLUS
+   0be3   06 e2                 DW DPL
+   0be5   04 fa                 DW AT
+   0be7   07 1b                 DW PLUS1
+   0be9   00 d0                 DW ZBRCH
+   0beb   0b f3                 DW PNM1
+   0bed   05 ad                 DW ONE
+   0bef   06 e2                 DW DPL
+   0bf1   04 c6                 DW PLUSS
+   0bf3   03 ad         PNM1:   DW RG
+   0bf5   00 bd                 DW BRCH
+   0bf7   0b bd                 DW PNMBR + 2
+   0bf9   03 ad         PNM2:   DW RG
+   0bfb   03 79                 DW SEMIS
+                                ;
+                                ;
+                                ;
+   0bfd   86 4e 55 4d           DB $86,"NUMBE",$D2 ; NUMBER
+   0c01   42 45 d2      
+   0c04   0b b0                 DW PNMBR - 11
+   0c06   05 75         NMBR:   DW NEST
+   0c08   05 a5                 DW ZERO
+   0c0a   05 a5                 DW ZERO
+   0c0c   07 a6                 DW ROT
+   0c0e   04 b6                 DW DUP
+   0c10   07 1b                 DW PLUS1
+   0c12   05 0d                 DW CAT
+   0c14   00 86                 DW LIT
+   0c16   00 2d                 DW $002D
+   0c18   07 80                 DW EQL
+   0c1a   04 b6                 DW DUP
+   0c1c   03 9d                 DW GR
+   0c1e   03 f7                 DW PLUS
+   0c20   00 86                 DW LIT
+   0c22   ff ff                 DW $FFFF          ; -1
+   0c24   06 e2         NMB1:   DW DPL
+   0c26   05 1e                 DW EX
+   0c28   0b bb                 DW PNMBR
+   0c2a   04 b6                 DW DUP
+   0c2c   05 0d                 DW CAT
+   0c2e   05 be                 DW BL
+   0c30   07 74                 DW MINS
+   0c32   00 d0                 DW ZBRCH
+   0c34   0c 4a                 DW NMB2
+   0c36   04 b6                 DW DUP
+   0c38   05 0d                 DW CAT
+   0c3a   00 86                 DW LIT
+   0c3c   00 2e                 DW $002E
+   0c3e   07 74                 DW MINS
+   0c40   05 a5                 DW ZERO
+   0c42   08 71                 DW QERR
+   0c44   05 a5                 DW ZERO
+   0c46   00 bd                 DW BRCH
+   0c48   0c 24                 DW NMB1
+   0c4a   04 8d         NMB2:   DW DROP
+   0c4c   03 ad                 DW RG
+   0c4e   00 d0                 DW ZBRCH
+   0c50   0c 54                 DW NMB3
+   0c52   04 58                 DW DMIN
+   0c54   03 79         NMB3:   DW SEMIS
+                                ;
+                                ;
+   0c56   85 2d 46 49           DB $85,"-FIN",$C4 ; -FIND
+   0c5a   4e c4         
+   0c5c   0b fd                 DW NMBR - 9
+   0c5e   05 75         MFIND:  DW NEST
+   0c60   05 be                 DW BL
+   0c62   0b 6a                 DW WORD
+   0c64   07 37                 DW HERE
+   0c66   06 b3                 DW CNTX
+   0c68   04 fa                 DW AT
+   0c6a   04 fa                 DW AT
+   0c6c   01 96                 DW FIND
+   0c6e   04 b6                 DW DUP
+   0c70   03 d2                 DW ZEQAL
+   0c72   00 d0                 DW ZBRCH
+   0c74   0c 7e                 DW MF1
+   0c76   04 8d                 DW DROP
+   0c78   07 37                 DW HERE
+   0c7a   08 05                 DW LTST
+   0c7c   01 96                 DW FIND
+   0c7e   03 79         MF1:    DW SEMIS
+                                ;
+                                ;
+   0c80   87 28 41 42           DB $87,"(ABORT",$A9 ; (ABORT)
+   0c84   4f 52 54 a9   
+   0c88   0c 56                 DW MFIND - 8
+   0c8a   05 75         PABRT:  DW NEST
+   0c8c   0f 71                 DW ABORT
+   0c8e   03 79                 DW SEMIS
+                                ;
+   0c90   85 45 52 52           DB $85,"ERRO",$D2 ; ERROR
+   0c94   4f d2         
+   0c96   0c 80                 DW PABRT - 10
+   0c98   05 75         ERROR:  DW NEST
+   0c9a   06 4d                 DW WRNG
+   0c9c   04 fa                 DW AT
+   0c9e   03 eb                 DW ZLESS
+   0ca0   00 d0                 DW ZBRCH
+   0ca2   0c a6                 DW ERR1
+   0ca4   0c 8a                 DW PABRT
+   0ca6   07 37         ERR1:   DW HERE
+   0ca8   09 a7                 DW CNT
+   0caa   09 ba                 DW TYPE
+   0cac   0a 1b                 DW PDQ
+   0cae   03 20 20 3f           DB $03,"  ?"
+   0cb2   14 3f                 DW MSG
+   0cb4   03 50                 DW SP1
+   0cb6   06 84                 DW FIN
+   0cb8   04 fa                 DW AT
+   0cba   06 7b                 DW BLK
+   0cbc   04 fa                 DW AT
+   0cbe   0f 40                 DW QUIT
+   0cc0   03 79                 DW SEMIS
+                                ;
+   0cc2   83 4d 49 ce           DB $83,"MI",$CE  ; MIN
+   0cc6   0c 90                 DW ERROR - 8
+   0cc8   05 75         MIN:    DW NEST
+   0cca   04 73                 DW OVER
+   0ccc   04 73                 DW OVER
+   0cce   07 98                 DW GTR
+   0cd0   00 d0                 DW ZBRCH
+   0cd2   0c d6                 DW MN1
+   0cd4   04 99                 DW SWAP
+   0cd6   04 8d         MN1:    DW DROP
+   0cd8   03 79                 DW SEMIS
+                                ;
+   0cda   83 49 44 ae           DB $83,"ID",$AE  ; ID.
+   0cde   0c c2                 DW MIN - 6
+   0ce0   05 75         ID:     DW NEST
+   0ce2   0b 57                 DW PAD
+   0ce4   00 86                 DW LIT
+   0ce6   00 20                 DW $0020
+   0ce8   00 86                 DW LIT
+   0cea   00 5f                 DW $005F
+   0cec   0a ff                 DW FILL
+   0cee   04 b6                 DW DUP
+   0cf0   08 49                 DW PFA
+   0cf2   08 15                 DW LFA
+   0cf4   04 73                 DW OVER
+   0cf6   07 74                 DW MINS
+   0cf8   0b 57                 DW PAD
+   0cfa   04 99                 DW SWAP
+   0cfc   02 46                 DW CMOVE
+   0cfe   0b 57                 DW PAD
+   0d00   09 a7                 DW CNT
+   0d02   00 86                 DW LIT
+   0d04   00 1f                 DW $001F
+   0d06   02 f3                 DW FAND
+   0d08   09 ba                 DW TYPE
+   0d0a   07 ba                 DW SPC
+   0d0c   03 79                 DW SEMIS
+                                ;
+                                ;
+   0d0e   86 43 52 45           DB $86,"CREAT",$C5 ; CREATE
+   0d12   41 54 c5      
+   0d15   0c da                 DW ID - 6
+   0d17   05 75         CRTE:   DW NEST
+   0d19   03 3d                 DW FSPAT
+   0d1b   07 37                 DW HERE
+   0d1d   00 86                 DW LIT
+   0d1f   00 a0                 DW $00A0
+   0d21   03 f7                 DW PLUS
+   0d23   07 8c                 DW LESS
+   0d25   05 b5                 DW TWO
+   0d27   08 71                 DW QERR
+   0d29   0c 5e                 DW MFIND
+   0d2b   00 d0                 DW ZBRCH
+   0d2d   0d 3d                 DW CRT1
+   0d2f   04 8d                 DW DROP
+   0d31   08 33                 DW NFA
+   0d33   0c e0                 DW ID
+   0d35   00 86                 DW LIT
+   0d37   00 04                 DW $0004
+   0d39   14 3f                 DW MSG
+   0d3b   07 ba                 DW SPC
+   0d3d   07 37         CRT1:   DW HERE
+   0d3f   04 b6                 DW DUP
+   0d41   05 0d                 DW CAT
+   0d43   06 3f                 DW WIDTH
+   0d45   04 fa                 DW AT
+   0d47   0c c8                 DW MIN
+   0d49   07 1b                 DW PLUS1
+   0d4b   07 47                 DW ALLOT
+   0d4d   04 b6                 DW DUP
+   0d4f   00 86                 DW LIT
+   0d51   00 a0                 DW $00A0
+   0d53   04 e3                 DW TGLE
+   0d55   07 37                 DW HERE
+   0d57   05 ad                 DW ONE
+   0d59   07 74                 DW MINS
+   0d5b   00 86                 DW LIT
+   0d5d   00 80                 DW $0080
+   0d5f   04 e3                 DW TGLE
+   0d61   08 05                 DW LTST
+   0d63   07 53                 DW COMMA
+   0d65   06 c1                 DW CRNT
+   0d67   04 fa                 DW AT
+   0d69   05 1e                 DW EX
+   0d6b   07 37                 DW HERE
+   0d6d   07 28                 DW PLUS2
+   0d6f   07 53                 DW COMMA
+   0d71   03 79                 DW SEMIS
+                                ;
+                                ;
+   0d73   c1 ba                 DW $C1BA          ; :   (IMMEDIATE)
+   0d75   0d 0e                 DW CRTE - 9
+   0d77   05 75         COLON:  DW NEST
+   0d79   08 a3                 DW EXC
+   0d7b   08 5e                 DW DCSP
+   0d7d   06 c1                 DW CRNT
+   0d7f   04 fa                 DW AT
+   0d81   06 b3                 DW CNTX
+   0d83   05 1e                 DW EX
+   0d85   0d 17                 DW CRTE
+   0d87   09 28                 DW RBK
+   0d89   00 86                 DW LIT
+   0d8b   ff fe                 DW $FFFE          ; -2
+   0d8d   06 62                 DW DP
+   0d8f   04 c6                 DW PLUSS
+   0d91   09 04                 DW CMPL
+   0d93   05 75                 DW NEST
+   0d95   03 79                 DW SEMIS
+                                ;
+                                ;
+   0d97   85 21 43 4f           DB $85,"!COD",$C5 ; !CODE
+   0d9b   44 c5         
+   0d9d   0d 73                 DW COLON - 4
+   0d9f   05 75         DCODE:  DW NEST
+   0da1   0d 17                 DW CRTE
+   0da3   09 3d                 DW SMDG
+   0da5   08 05                 DW LTST
+   0da7   08 49                 DW PFA
+   0da9   08 25                 DW CFA
+   0dab   05 1e                 DW EX
+   0dad   07 53                 DW COMMA
+   0daf   03 79                 DW SEMIS
+                                ;
+                                ;
+   0db1   88 43 4f 4e           DB $88,"CONSTAN",$D4 ; CONSTANT
+   0db5   53 54 41 4e   
+   0db9   d4            
+   0dba   0d 97                 DW DCODE - 8
+   0dbc   05 75         CNST:   DW NEST
+   0dbe   00 86                 DW LIT
+   0dc0   05 89                 DW CONST
+   0dc2   0d 9f                 DW DCODE
+   0dc4   03 79                 DW SEMIS
+                                ;
+                                ;
+   0dc6   88 56 41 52           DB $88,"VARIABL",$C5 ; VARIABLE
+   0dca   49 41 42 4c   
+   0dce   c5            
+   0dcf   0d b1                 DW CNST - 11
+   0dd1   05 75         VARB:   DW NEST
+   0dd3   00 86                 DW LIT
+   0dd5   05 80                 DW VAR
+   0dd7   0d 9f                 DW DCODE
+   0dd9   03 79                 DW SEMIS
+                                ;
+                                ;
+   0ddb   84 55 53 45           DB $84,"USE",$D2 ; USER
+   0ddf   d2            
+   0de0   0d c6                 DW VARB - 11
+   0de2   05 75         USR:    DW NEST
+   0de4   00 86                 DW LIT
+   0de6   05 92                 DW USER
+   0de8   0d 9f                 DW DCODE
+   0dea   03 79                 DW SEMIS
+                                ;
+                                ;
+   0dec   87 3c 42 55           DB $87,"<BUILD",$D3 ; <BUILDS
+   0df0   49 4c 44 d3   
+   0df4   0d db                 DW USR - 7
+   0df6   05 75         LBLD:   DW NEST
+   0df8   05 a5                 DW ZERO
+   0dfa   0d bc                 DW CNST
+   0dfc   03 79                 DW SEMIS
+                                ;
+                                ;
+   0dfe   85 44 4f 45           DB $85,"DOES",$BE ; DOES>
+   0e02   53 be         
+   0e04   0d ec                 DW LBLD - 10
+   0e06   05 75         DOSEG:  DW NEST
+   0e08   03 ad                 DW RG
+   0e0a   08 05                 DW LTST
+   0e0c   08 49                 DW PFA
+   0e0e   05 1e                 DW EX
+   0e10   09 7b                 DW PCODE
+   0e12   e2            DUZ1:   SEX R2
+   0e13   9a                    GHI RA
+   0e14   73                    STXD
+   0e15   8a                    GLO RA
+   0e16   73                    STXD
+   0e17   4b                    LDA RB
+   0e18   ba                    PHI RA
+   0e19   4b                    LDA RB
+   0e1a   aa                    PLO RA
+   0e1b   19                    INC R9
+   0e1c   19                    INC R9
+   0e1d   9b                    GHI RB
+   0e1e   59                    STR R9
+   0e1f   19                    INC R9
+   0e20   8b                    GLO RB
+   0e21   59                    STR R9
+   0e22   29                    DEC R9
+   0e23   dc                    SEP RC
+                                ;
+                                ;
+   0e24   c7 4c 49 54           DB $C7,"LITERA",$CC ; LITERAL (IMMEDIATE)
+   0e28   45 52 41 cc   
+   0e2c   0d fe                 DW DOSEG - 8
+   0e2e   05 75         LTL:    DW NEST
+   0e30   06 cd                 DW STT
+   0e32   04 fa                 DW AT
+   0e34   00 d0                 DW ZBRCH
+   0e36   0e 3e                 DW LT1
+   0e38   09 04                 DW CMPL
+   0e3a   00 86                 DW LIT
+   0e3c   07 53                 DW COMMA
+   0e3e   03 79         LT1:    DW SEMIS
+                                ;
+                                ;
+   0e40   c8 44 4c 49           DB $C8,"DLITERA",$CC ; DLITERAL (IMMEDIATE)
+   0e44   54 45 52 41   
+   0e48   cc            
+   0e49   0e 24                 DW LTL - 10
+   0e4b   05 75         DLTL:   DW NEST
+   0e4d   06 cd                 DW STT
+   0e4f   04 fa                 DW AT
+   0e51   00 d0                 DW ZBRCH
+   0e53   0e 5b                 DW DLTL1
+   0e55   04 99                 DW SWAP
+   0e57   0e 2e                 DW LTL
+   0e59   0e 2e                 DW LTL
+   0e5b   03 79         DLTL1:  DW SEMIS
+                                ;
+                                ;
+   0e5d   86 3f 53 54           DB $86,"?STAC",$CB ; ?STACK
+   0e61   41 43 cb      
+   0e64   0e 40                 DW DLTL - 11
+   0e66   05 75         QSTK:   DW NEST
+   0e68   06 20                 DW SO
+   0e6a   04 fa                 DW AT
+   0e6c   04 b6                 DW DUP
+   0e6e   03 3d                 DW FSPAT
+   0e70   07 98                 DW GTR
+   0e72   05 ad                 DW ONE
+   0e74   08 71                 DW QERR
+   0e76   00 86                 DW LIT
+   0e78   01 00                 DW $0100
+   0e7a   03 f7                 DW PLUS
+   0e7c   03 3d                 DW FSPAT
+   0e7e   07 8c                 DW LESS
+   0e80   00 86                 DW LIT
+   0e82   00 07                 DW $0007
+   0e84   08 71                 DW QERR
+   0e86   03 79                 DW SEMIS
+                                ;
+                                ;
+   0e88   89 49 4e 54           DB $89,"INTERPRE",$D4 ; INTERPRET
+   0e8c   45 52 50 52   
+   0e90   45 d4         
+   0e92   0e 5d                 DW QSTK - 9
+   0e94   05 75         INPT:   DW NEST
+   0e96   0c 5e                 DW MFIND
+   0e98   00 d0                 DW ZBRCH
+   0e9a   0e b8                 DW PT1
+   0e9c   06 cd                 DW STT
+   0e9e   04 fa                 DW AT
+   0ea0   07 8c                 DW LESS
+   0ea2   00 d0                 DW ZBRCH
+   0ea4   0e ae                 DW PT2
+   0ea6   08 25                 DW CFA
+   0ea8   07 53                 DW COMMA
+   0eaa   00 bd                 DW BRCH
+   0eac   0e b2                 DW PT3
+   0eae   08 25         PT2:    DW CFA
+   0eb0   00 a6                 DW EXE
+   0eb2   0e 66         PT3:    DW QSTK
+   0eb4   00 bd                 DW BRCH
+   0eb6   0e d2                 DW PT4
+   0eb8   07 37         PT1:    DW HERE
+   0eba   0c 06                 DW NMBR
+   0ebc   06 e2                 DW DPL
+   0ebe   04 fa                 DW AT
+   0ec0   07 1b                 DW PLUS1
+   0ec2   00 d0                 DW ZBRCH
+   0ec4   0e cc                 DW PT5
+   0ec6   0e 4b                 DW DLTL
+   0ec8   00 bd                 DW BRCH
+   0eca   0e d0                 DW PT6
+   0ecc   04 8d         PT5:    DW DROP
+   0ece   0e 2e                 DW LTL
+   0ed0   0e 66         PT6:    DW QSTK
+   0ed2   00 bd         PT4:    DW BRCH
+   0ed4   0e 96                 DW INPT + 2
+   0ed6   03 79                 DW SEMIS
+                                ;
+                                ;
+   0ed8   8a 56 4f 43           DB $8A,"VOCABULAR",$D9 ; VOCABULARY
+   0edc   41 42 55 4c   
+   0ee0   41 52 d9      
+   0ee3   0e 88                 DW INPT - 12
+   0ee5   05 75         VBLY:   DW NEST
+   0ee7   0d f6                 DW LBLD
+   0ee9   00 86                 DW LIT
+   0eeb   81 a0                 DW $81A0
+   0eed   07 53                 DW COMMA
+   0eef   06 c1                 DW CRNT
+   0ef1   04 fa                 DW AT
+   0ef3   08 25                 DW CFA
+   0ef5   07 53                 DW COMMA
+   0ef7   07 37                 DW HERE
+   0ef9   06 71                 DW VL
+   0efb   04 fa                 DW AT
+   0efd   07 53                 DW COMMA
+   0eff   06 71                 DW VL
+   0f01   05 1e                 DW EX
+   0f03   0e 06                 DW DOSEG
+   0f05   07 28         VB1:    DW PLUS2
+   0f07   06 b3                 DW CNTX
+   0f09   05 1e                 DW EX
+   0f0b   03 79                 DW SEMIS
+                                ;
+                                ;
+   0f0d   c5 46 4f 52   FRTH:   DB $C5,"FORT",$C8 ; FORTH (IMMEDIATE)
+   0f11   54 c8         
+   0f13   0e d8                 DW VBLY - 13
+   0f15   0e 12                 DW DUZ1
+   0f17   0f 05                 DW VB1
+   0f19   81 a0                 DW $81A0
+U  0f1b   ff f9                 DW TASK - 7        ; DICTION LINK
+   0f1d   00 00                 DW $0000          ; NOTE THIS MUST BE CHANGED
+                                                    ; TO REFLECT THE LINK TO THE
+                                                    ; LAST DICT WORD IN THE
+                                                    ; FORTH VOCAB
+                                ;
+                                ;
+   0f1f   8b 44 45 46           DB $8B,"DEFINITION",$D3 ; DEFINITIONS
+   0f23   49 4e 49 54   
+   0f27   49 4f 4e d3   
+   0f2b   0f 0d                 DW FRTH
+   0f2d   05 75         DFN:    DW NEST
+   0f2f   06 b3                 DW CNTX
+   0f31   04 fa                 DW AT
+   0f33   06 c1                 DW CRNT
+   0f35   05 1e                 DW EX
+   0f37   03 79                 DW SEMIS
+                                ;
+   0f39   84 51 55 49           DB $84,"QUI",$D4 ; QUIT
+   0f3d   d4            
+   0f3e   0f 1f                 DW DFN - 14
+   0f40   05 75         QUIT:   DW NEST
+   0f42   05 a5                 DW ZERO
+   0f44   06 7b                 DW BLK
+   0f46   05 1e                 DW EX
+   0f48   09 1a                 DW LB
+   0f4a   03 65         Q2:     DW RP1
+   0f4c   05 73                 DW CR
+   0f4e   0a aa                 DW QUER
+   0f50   0e 94                 DW INPT
+   0f52   06 cd                 DW STT
+   0f54   04 fa                 DW AT
+   0f56   03 d2                 DW ZEQAL
+   0f58   00 d0                 DW ZBRCH
+   0f5a   0f 63                 DW Q1
+   0f5c   0a 1b                 DW PDQ
+   0f5e   04 20 20 4f           DB $04,"  OK"
+   0f62   4b            
+   0f63   00 bd         Q1:     DW BRCH
+   0f65   0f 4a                 DW Q2
+   0f67   03 79                 DW SEMIS
+                                ;
+                                ;
+   0f69   85 41 42 4f           DB $85,"ABOR",$D4 ; ABORT
+   0f6d   52 d4         
+   0f6f   0f 39                 DW QUIT - 7
+   0f71   05 75         ABORT:  DW NEST
+   0f73   03 50                 DW SP1
+   0f75   09 65                 DW MDCML
+   0f77   05 73                 DW CR
+   0f79   0a 1b                 DW PDQ
+   0f7b   1c 31 38 30           DB $1C,"1802 FIG-FORTH R0.4  3/16/81"
+   0f7f   32 20 46 49   
+   0f83   47 2d 46 4f   
+   0f87   52 54 48 20   
+   0f8b   52 30 2e 34   
+   0f8f   20 20 33 2f   
+   0f93   31 36 2f 38   
+   0f97   31            
+U  0f98   00 00         	DW DRZER
+U  0f9a   00 00                 DW MTBUF
+   0f9c   05 d4                 DW FIRST
+   0f9e   04 b6                 DW DUP
+U  0fa0   00 00                 DW PREV
+   0fa2   05 1e                 DW EX
+U  0fa4   00 00                 DW USE
+   0fa6   05 1e                 DW EX
+   0fa8   0f 15                 DW FRTH + 8
+   0faa   0f 2d                 DW DFN
+   0fac   0f 40                 DW QUIT
+   0fae   03 79                 DW SEMIS
+                                ;
+                                ;
+   0fb0   c1 bb                 DW $C1BB          ; ;   (IMMEDIATE)
+   0fb2   0f 69                 DW ABORT - 8
+   0fb4   05 75         SEMIC:  DW NEST
+   0fb6   08 cd                 DW QCSP
+   0fb8   09 04                 DW CMPL
+   0fba   03 79                 DW SEMIS
+   0fbc   09 3d                 DW SMDG
+   0fbe   09 1a                 DW LB
+   0fc0   03 79                 DW SEMIS
+                                ;
+                                ;
+                                ;
+   0fc2   c2 2e a2              DB $C2,$2E,$A2  ; ."   (IMMEDIATE)
+   0fc5   0f b0                 DW SEMIC - 4
+   0fc7   05 75         DOTQ:   DW NEST
+   0fc9   00 86                 DW LIT
+   0fcb   00 22                 DW $0022
+   0fcd   06 cd                 DW STT
+   0fcf   04 fa                 DW AT
+   0fd1   00 d0                 DW ZBRCH
+   0fd3   0f e7                 DW DOTQ1
+   0fd5   09 04                 DW CMPL
+   0fd7   0a 1b                 DW PDQ
+   0fd9   0b 6a                 DW WORD
+   0fdb   07 37                 DW HERE
+   0fdd   05 0d                 DW CAT
+   0fdf   07 1b                 DW PLUS1
+   0fe1   07 47                 DW ALLOT
+   0fe3   00 bd                 DW BRCH
+   0fe5   0f ef                 DW DOTQ2
+   0fe7   0b 6a         DOTQ1:  DW WORD
+   0fe9   07 37                 DW HERE
+   0feb   09 a7                 DW CNT
+   0fed   09 ba                 DW TYPE
+   0fef   03 79         DOTQ2:  DW SEMIS
+                                ;
+                                ;
+   0ff1   c9 5b 43 4f           DB $C9,"[COMPILE",$DD ; [COMPILE]
+   0ff5   4d 50 49 4c   
+   0ff9   45 dd         
+   0ffb   0f c2                 DW DOTQ - 5             ; (IMMEDIATE)
+   0ffd   05 75         BCOMP:  DW NEST
+   0fff   0c 5e                 DW MFIND
+   1001   03 d2                 DW ZEQAL
+   1003   05 a5                 DW ZERO
+   1005   08 71                 DW QERR
+   1007   04 8d                 DW DROP
+   1009   08 25                 DW CFA
+   100b   07 53                 DW COMMA
+   100d   03 79                 DW SEMIS
+                                ;
+                                ;
+   100f   89 49 4d 4d           DB $89,"IMMEDIAT",$C5 ; IMMEDIATE
+   1013   45 44 49 41   
+   1017   54 c5         
+   1019   0f f1                 DW BCOMP - 12
+   101b   05 75         IMMED:  DW NEST
+   101d   08 05                 DW LTST
+   101f   00 86                 DW LIT
+   1021   00 40                 DW $0040
+   1023   04 e3                 DW TGLE
+   1025   03 79                 DW SEMIS
+                                ;
+                                ;
+   1027   c1 a8                 DW $C1A8          ; (   (IMMEDIATE)
+   1029   10 0f                 DW IMMED - 12
+   102b   05 75         PAREN:  DW NEST
+   102d   00 86                 DW LIT
+   102f   00 29                 DW $0029
+   1031   0b 6a                 DW WORD
+   1033   03 79                 DW SEMIS
+                                ;
+                                ;
+   1035   81 b3                 DW $81B3          ; 3
+   1037   10 27                 DW PAREN - 4
+   1039   05 89         THREE:  DW CONST
+   103b   00 03                 DW $0003
+                                ;
+                                ;
+   103d   c1 a7                 DW $C1A7          ; '   (TICK)   (IMMEDIATE)
+   103f   10 35                 DW THREE - 4
+   1041   05 75         TICK:   DW NEST
+   1043   0c 5e                 DW MFIND
+   1045   03 d2                 DW ZEQAL
+   1047   05 a5                 DW ZERO
+   1049   08 71                 DW QERR
+   104b   04 8d                 DW DROP
+   104d   0e 2e                 DW LTL
+   104f   03 79                 DW SEMIS
+                                ;
+                                ;
+   1051   86 46 4f 52           DB $86,"FORGE",$D4 ; FORGET
+   1055   47 45 d4      
+   1058   10 3d                 DW TICK - 4
+   105a   05 75         FORG:   DW NEST
+   105c   06 c1                 DW CRNT
+   105e   04 fa                 DW AT
+   1060   06 b3                 DW CNTX
+   1062   04 fa                 DW AT
+   1064   07 74                 DW MINS
+   1066   00 86                 DW LIT
+   1068   00 18                 DW $0018
+   106a   08 71                 DW QERR
+   106c   10 41                 DW TICK
+   106e   04 b6                 DW DUP
+   1070   06 59                 DW FNCE
+   1072   04 fa                 DW AT
+   1074   07 8c                 DW LESS
+   1076   00 86                 DW LIT
+   1078   00 15                 DW $0015
+   107a   08 71                 DW QERR
+   107c   04 b6                 DW DUP
+   107e   08 33                 DW NFA
+   1080   06 62                 DW DP
+   1082   05 1e                 DW EX
+   1084   08 15                 DW LFA
+   1086   04 fa                 DW AT
+   1088   06 b3                 DW CNTX
+   108a   04 fa                 DW AT
+   108c   05 1e                 DW EX
+   108e   03 79                 DW SEMIS
+                                ;
+                                ;
+   1090   82 2b ad              DB $82,$2B,$AD  ; +-
+   1093   10 51                 DW FORG - 9
+   1095   05 75         PM:     DW NEST
+   1097   03 eb                 DW ZLESS
+   1099   00 d0                 DW ZBRCH
+   109b   10 9f                 DW PM1
+   109d   04 12                 DW MINUS
+   109f   03 79         PM1:    DW SEMIS
+                                ;
+   10a1   83 44 2b ad           DB $83,$44,$2B,$AD ; D+-
+   10a5   10 90                 DW PM - 5
+   10a7   05 75         DPM:    DW NEST
+   10a9   03 eb                 DW ZLESS
+   10ab   00 d0                 DW ZBRCH
+   10ad   10 b1                 DW DPM1
+   10af   04 58                 DW DMIN
+   10b1   03 79         DPM1:   DW SEMIS
+                                ;
+   10b3   83 41 42 d3           DB $83,$41,$42,$D3 ; ABS
+   10b7   10 a1                 DW DPM - 6
+   10b9   05 75         ABS:    DW NEST
+   10bb   04 b6                 DW DUP
+   10bd   10 95                 DW PM
+   10bf   03 79                 DW SEMIS
+                                ;
+   10c1   84 44 41 42           DB $84,"DAB",$D3 ; DABS
+   10c5   d3            
+   10c6   10 b3                 DW ABS - 6
+   10c8   05 75         DABS:   DW NEST
+   10ca   04 b6                 DW DUP
+   10cc   10 a7                 DW DPM
+   10ce   03 79                 DW SEMIS
+                                ;
+   10d0   83 4d 41 d8           DB $83,$4D,$41,$D8 ; MAX
+   10d4   10 c1                 DW DABS - 7
+   10d6   05 75         MAX:    DW NEST
+   10d8   04 73                 DW OVER
+   10da   04 73                 DW OVER
+   10dc   07 8c                 DW LESS
+   10de   00 d0                 DW ZBRCH
+   10e0   10 e4                 DW MAX1
+   10e2   04 99                 DW SWAP
+   10e4   04 8d         MAX1:   DW DROP
+   10e6   03 79                 DW SEMIS
+                                ;
+   10e8   82 4d aa              DB $82,$4D,$AA  ; M*
+   10eb   10 d0                 DW MAX - 6
+   10ed   05 75         MSTAR:  DW NEST
+   10ef   04 73                 DW OVER
+   10f1   04 73                 DW OVER
+   10f3   03 24                 DW FXOR
+   10f5   03 9d                 DW GR
+   10f7   10 b9                 DW ABS
+   10f9   04 99                 DW SWAP
+   10fb   10 b9                 DW ABS
+   10fd   02 78                 DW USTAR
+   10ff   03 ad                 DW RG
+   1101   10 a7                 DW DPM
+   1103   03 79                 DW SEMIS
+                                ;
+   1105   82 4d af              DB $82,$4D,$AF  ; M/
+   1108   10 e8                 DW MSTAR - 5
+   110a   05 75         MSLAS:  DW NEST
+   110c   04 73                 DW OVER
+   110e   03 9d                 DW GR
+   1110   03 9d                 DW GR
+   1112   10 c8                 DW DABS
+   1114   03 bd                 DW R
+   1116   10 b9                 DW ABS
+   1118   02 b2                 DW USLSH
+   111a   03 ad                 DW RG
+   111c   03 bd                 DW R
+   111e   03 24                 DW FXOR
+   1120   10 95                 DW PM
+   1122   04 99                 DW SWAP
+   1124   03 ad                 DW RG
+   1126   10 95                 DW PM
+   1128   04 99                 DW SWAP
+   112a   03 79                 DW SEMIS
+                                ;
+   112c   81 aa                 DW $81AA          ; *
+   112e   11 05                 DW MSLAS - 5
+   1130   05 75         STAR:   DW NEST
+   1132   10 ed                 DW MSTAR
+   1134   04 8d                 DW DROP
+   1136   03 79                 DW SEMIS
+                                ;
+   1138   84 2f 4d 4f           DB $84,$2F,$4D,$4F,$C4 ; /MOD
+   113c   c4            
+   113d   11 2c                 DW STAR - 4
+   113f   05 75         SLMOD:  DW NEST
+   1141   03 9d                 DW GR
+   1143   14 80                 DW STOD
+   1145   03 ad                 DW RG
+   1147   11 0a                 DW MSLAS
+   1149   03 79                 DW SEMIS
+                                ;
+   114b   81 af                 DW $81AF          ; /
+   114d   11 38                 DW SLMOD - 7
+   114f   05 75         SLASH:  DW NEST
+   1151   11 3f                 DW SLMOD
+   1153   04 99                 DW SWAP
+   1155   04 8d                 DW DROP
+   1157   03 79                 DW SEMIS
+                                ;
+   1159   83 4d 4f c4           DB $83,$4D,$4F,$C4 ; MOD
+   115d   11 4b                 DW SLASH - 4
+   115f   05 75         MODD:   DW NEST
+   1161   11 3f                 DW SLMOD
+   1163   04 8d                 DW DROP
+   1165   03 79                 DW SEMIS
+                                ;
+   1167   85 2a 2f 4d           DB $85,"*/MO",$C4 ; */MOD
+   116b   4f c4         
+   116d   11 59                 DW MODD - 6
+   116f   05 75         SSMOD:  DW NEST
+   1171   03 9d                 DW GR
+   1173   10 ed                 DW MSTAR
+   1175   03 ad                 DW RG
+   1177   11 0a                 DW MSLAS
+   1179   03 79                 DW SEMIS
+                                ;
+   117b   82 2a af              DB $82,$2A,$AF ; */
+   117e   11 67                 DW SSMOD - 8
+   1180   05 75         SSLA:   DW NEST
+   1182   11 6f                 DW SSMOD
+   1184   04 99                 DW SWAP
+   1186   04 8d                 DW DROP
+   1188   03 79                 DW SEMIS
+                                ;
+   118a   85 4d 2f 4d           DB $85,"M/MO",$C4 ; M/MOD
+   118e   4f c4         
+   1190   11 7b                 DW SSLA - 5
+   1192   05 75         MSMOD:  DW NEST
+   1194   03 9d                 DW GR
+   1196   05 a5                 DW ZERO
+   1198   03 bd                 DW R
+   119a   02 b2                 DW USLSH
+   119c   03 ad                 DW RG
+   119e   04 99                 DW SWAP
+   11a0   03 9d                 DW GR
+   11a2   02 b2                 DW USLSH
+   11a4   03 ad                 DW RG
+   11a6   03 79                 DW SEMIS
+                                ;
+                                ;
+   11a8   83 4d 4f ce           DB $83,"MO",$CE  ; MON
+   11ac   11 8a                 DW MSMOD - 8       ; RETURN TO MONITOR
+   11ae   11 b0         MON:    DW $ + 2           ; AT 8000 HEX
+   11b0   f8 80                 LDI $80
+   11b2   b0                    PHI R0
+   11b3   f8 00                 LDI $00
+   11b5   a0                    PLO R0
+   11b6   e0                    SEX R0
+   11b7   d0                    SEP R0
+                                ;
+                                ;
+   11b8   83 42 59 c5           DB $83,"BY",$C5  ; BYE
+   11bc   11 a8                 DW MON - 6
+   11be   05 75         BYE:    DW NEST
+U  11c0   00 00                 DW FLUSH
+   11c2   11 ae                 DW MON
+                                ;
+                                ;
+   11c4   84 42 41 43           DB $84,"BAC",$CB ; BACK
+   11c8   cb            
+   11c9   11 b8                 DW BYE - 6
+   11cb   05 75         BACK:   DW NEST
+   11cd   07 53                 DW COMMA
+   11cf   03 79                 DW SEMIS
+                                ;
+   11d1   c5 42 45 47           DB $C5,"BEGI",$CE ; BEGIN
+   11d5   49 ce         
+   11d7   11 c4                 DW BACK - 7
+   11d9   05 75         BEGIN:  DW NEST
+   11db   08 8b                 DW QCMP
+   11dd   07 37                 DW HERE
+   11df   05 ad                 DW ONE
+   11e1   03 79                 DW SEMIS
+                                ;
+   11e3   c5 45 4e 44           DB $C5,"ENDI",$C6 ; ENDIF
+   11e7   49 c6         
+   11e9   11 d1                 DW BEGIN - 8
+   11eb   05 75         ENDIFF: DW NEST
+   11ed   08 8b                 DW QCMP
+   11ef   05 b5                 DW TWO
+   11f1   08 ba                 DW QPR
+   11f3   07 37                 DW HERE
+   11f5   04 99                 DW SWAP
+   11f7   05 1e                 DW EX
+   11f9   03 79                 DW SEMIS
+                                ;
+   11fb   c4 54 48 45           DB $C4,"THE",$CE ; THEN
+   11ff   ce            
+   1200   11 e3                 DW ENDIFF - 8
+   1202   05 75         THEN:   DW NEST
+   1204   11 eb                 DW ENDIFF
+   1206   03 79                 DW SEMIS
+                                ;
+   1208   c2 44 cf              DB $C2,$44,$CF  ; DO
+   120b   11 fb                 DW THEN - 7
+   120d   05 75         DO:     DW NEST
+   120f   09 04                 DW CMPL
+   1211   01 50                 DW PDO
+   1213   07 37                 DW HERE
+   1215   10 39                 DW THREE
+   1217   03 79                 DW SEMIS
+                                ;
+   1219   c4 4c 4f 4f           DB $C4,$4C,$4F,$4F,$D0 ; LOOP
+   121d   d0            
+   121e   12 08                 DW DO - 5
+   1220   05 75         LOOP:   DW NEST
+   1222   10 39                 DW THREE
+   1224   08 ba                 DW QPR
+   1226   09 04                 DW CMPL
+   1228   00 ec                 DW LUPE
+   122a   11 cb                 DW BACK
+   122c   03 79                 DW SEMIS
+                                ;
+   122e   c5 2b 4c 4f           DB $C5,"+LOO",$D0 ; +LOOP
+   1232   4f d0         
+   1234   12 19                 DW LOOP - 7
+   1236   05 75         PLOOP:  DW NEST
+   1238   10 39                 DW THREE
+   123a   08 ba                 DW QPR
+   123c   09 04                 DW CMPL
+   123e   01 24                 DW PLUPE
+   1240   11 cb                 DW BACK
+   1242   03 79                 DW SEMIS
+                                ;
+   1244   c5 55 4e 54           DB $C5,"UNTI",$CC ; UNTIL
+   1248   49 cc         
+   124a   12 2e                 DW PLOOP - 8
+   124c   05 75         UNTIL:  DW NEST
+   124e   05 ad                 DW ONE
+   1250   08 ba                 DW QPR
+   1252   09 04                 DW CMPL
+   1254   00 d0                 DW ZBRCH
+   1256   11 cb                 DW BACK
+   1258   03 79                 DW SEMIS
+                                ;
+   125a   c3 45 4e c4           DB $C3,$45,$4E,$C4 ; END
+   125e   12 44                 DW UNTIL - 8
+   1260   05 75         ENDD:   DW NEST
+   1262   12 4c                 DW UNTIL
+   1264   03 79                 DW SEMIS
+                                ;
+   1266   c5 41 47 41           DB $C5,"AGAI",$CE ; AGAIN
+   126a   49 ce         
+   126c   12 5a                 DW ENDD - 6
+   126e   05 75         AGAIN:  DW NEST
+   1270   05 ad                 DW ONE
+   1272   08 ba                 DW QPR
+   1274   09 04                 DW CMPL
+   1276   00 bd                 DW BRCH
+   1278   11 cb                 DW BACK
+   127a   03 79                 DW SEMIS
+                                ;
+   127c   c6 52 45 50           DB $C6,"REPEA",$D4 ; REPEAT
+   1280   45 41 d4      
+   1283   12 66                 DW AGAIN - 8
+   1285   05 75         REPEA:  DW NEST
+   1287   03 9d                 DW GR
+   1289   03 9d                 DW GR
+   128b   12 6e                 DW AGAIN
+   128d   03 ad                 DW RG
+   128f   03 ad                 DW RG
+   1291   05 b5                 DW TWO
+   1293   07 74                 DW MINS
+   1295   11 eb                 DW ENDIFF
+   1297   03 79                 DW SEMIS
+                                ;
+   1299   c2 49 c6              DB $C2,$49,$C6 ; IF
+   129c   12 7c                 DW REPEA - 9
+   129e   05 75         IFF:    DW NEST
+   12a0   09 04                 DW CMPL
+   12a2   00 d0                 DW ZBRCH
+   12a4   07 37                 DW HERE
+   12a6   05 a5                 DW ZERO
+   12a8   07 53                 DW COMMA
+   12aa   05 b5                 DW TWO
+   12ac   03 79                 DW SEMIS
+                                ;
+   12ae   c4 45 4c 53           DB $C4,"ELS",$C5 ; ELSE
+   12b2   c5            
+   12b3   12 99                 DW IFF - 5
+   12b5   05 75         ELSEE:  DW NEST
+   12b7   05 b5                 DW TWO
+   12b9   08 ba                 DW QPR
+   12bb   09 04                 DW CMPL
+   12bd   00 bd                 DW BRCH
+   12bf   07 37                 DW HERE
+   12c1   05 a5                 DW ZERO
+   12c3   07 53                 DW COMMA
+   12c5   04 99                 DW SWAP
+   12c7   05 b5                 DW TWO
+   12c9   11 eb                 DW ENDIFF
+   12cb   05 b5                 DW TWO
+   12cd   03 79                 DW SEMIS
+                                ;
+   12cf   c5 57 48 49           DB $C5,"WHIL",$C5 ; WHILE
+   12d3   4c c5         
+   12d5   12 ae                 DW ELSEE - 7
+   12d7   05 75         WHILE:  DW NEST
+   12d9   12 9e                 DW IFF
+   12db   07 28                 DW PLUS2
+   12dd   03 79                 DW SEMIS
+                                ;
+   12df   86 53 50 41           DB $86,"SPACE",$D3 ; SPACES
+   12e3   43 45 d3      
+   12e6   12 cf                 DW WHILE - 8
+   12e8   05 75         SPACS:  DW NEST
+   12ea   05 a5                 DW ZERO
+   12ec   10 d6                 DW MAX
+   12ee   07 c9                 DW MDUP
+   12f0   00 d0                 DW ZBRCH
+   12f2   12 fe                 DW SPAX1
+   12f4   05 a5                 DW ZERO
+   12f6   01 50                 DW PDO
+   12f8   07 ba         SPAX2:  DW SPC
+   12fa   00 ec                 DW LUPE
+   12fc   12 f8                 DW SPAX2
+   12fe   03 79         SPAX1:  DW SEMIS
+                                ;
+   1300   82 3c a3              DB $82,$3C,$A3  ; <#
+   1303   12 df                 DW SPACS - 9
+   1305   05 75         BDIGS:  DW NEST
+   1307   0b 57                 DW PAD
+   1309   07 09                 DW HLD
+   130b   05 1e                 DW EX
+   130d   03 79                 DW SEMIS
+                                ;
+   130f   82 23 be              DB $82,$23,$BE  ; #>
+   1312   13 00                 DW BDIGS - 5
+   1314   05 75         EDIGS:  DW NEST
+   1316   04 8d                 DW DROP
+   1318   04 8d                 DW DROP
+   131a   07 09                 DW HLD
+   131c   04 fa                 DW AT
+   131e   0b 57                 DW PAD
+   1320   04 73                 DW OVER
+   1322   07 74                 DW MINS
+   1324   03 79                 DW SEMIS
+                                ;
+   1326   84 53 49 47           DB $84,"SIG",$CE ; SIGN
+   132a   ce            
+   132b   13 0f                 DW EDIGS - 5
+   132d   05 75         SIGN:   DW NEST
+   132f   07 a6                 DW ROT
+   1331   03 eb                 DW ZLESS
+   1333   00 d0                 DW ZBRCH
+   1335   13 3d                 DW SIGN1
+   1337   00 86                 DW LIT
+   1339   00 2d                 DW $002D
+   133b   0b 3f                 DW HOLD
+   133d   03 79         SIGN1:  DW SEMIS
+                                ;
+   133f   81 a3                 DW $81A3          ; #
+   1341   13 26                 DW SIGN - 7
+   1343   05 75         DIG:    DW NEST
+   1345   06 d8                 DW BASE
+   1347   04 fa                 DW AT
+   1349   11 92                 DW MSMOD
+   134b   07 a6                 DW ROT
+   134d   00 86                 DW LIT
+   134f   00 09                 DW $0009
+   1351   04 73                 DW OVER
+   1353   07 8c                 DW LESS
+   1355   00 d0                 DW ZBRCH
+   1357   13 5f                 DW DIG1
+   1359   00 86                 DW LIT
+   135b   00 07                 DW $0007
+   135d   03 f7                 DW PLUS
+   135f   00 86         DIG1:   DW LIT
+   1361   00 30                 DW $0030
+   1363   03 f7                 DW PLUS
+   1365   0b 3f                 DW HOLD
+   1367   03 79                 DW SEMIS
+                                ;
+   1369   82 23 d3              DB $82,$23,$D3  ; #S
+   136c   13 3f                 DW DIG - 4
+   136e   05 75         DIGS:   DW NEST
+   1370   13 43         DIGS1:  DW DIG
+   1372   04 73                 DW OVER
+   1374   04 73                 DW OVER
+   1376   03 0b                 DW FFOR
+   1378   03 d2                 DW ZEQAL
+   137a   00 d0                 DW ZBRCH
+   137c   13 70                 DW DIGS1
+   137e   03 79                 DW SEMIS
+                                ;
+   1380   83 44 2e d2           DB $83,$44,$2E,$D2 ; D.R
+   1384   13 69                 DW DIGS - 5
+   1386   05 75         DDOTR:  DW NEST
+   1388   03 9d                 DW GR
+   138a   04 99                 DW SWAP
+   138c   04 73                 DW OVER
+   138e   10 c8                 DW DABS
+   1390   13 05                 DW BDIGS
+   1392   13 6e                 DW DIGS
+   1394   13 2d                 DW SIGN
+   1396   13 14                 DW EDIGS
+   1398   03 ad                 DW RG
+   139a   04 73                 DW OVER
+   139c   07 74                 DW MINS
+   139e   12 e8                 DW SPACS
+   13a0   09 ba                 DW TYPE
+   13a2   03 79                 DW SEMIS
+                                ;
+   13a4   82 2e d2              DB $82,$2E,$D2  ; .R
+   13a7   13 80                 DW DDOTR - 6
+   13a9   05 75         DOTR:   DW NEST
+   13ab   03 9d                 DW GR
+   13ad   14 80                 DW STOD
+   13af   03 ad                 DW RG
+   13b1   13 86                 DW DDOTR
+   13b3   03 79                 DW SEMIS
+                                ;
+   13b5   82 44 ae              DB $82,$44,$AE  ; D.
+   13b8   13 a4                 DW DOTR - 5
+   13ba   05 75         DDOT:   DW NEST
+   13bc   05 a5                 DW ZERO
+   13be   13 86                 DW DDOTR
+   13c0   07 ba                 DW SPC
+   13c2   03 79                 DW SEMIS
+                                ;
+   13c4   81 ae                 DW $81AE          ; .   (DOT)
+   13c6   13 b5                 DW DDOT - 5
+   13c8   05 75         DOT:    DW NEST
+   13ca   14 80                 DW STOD
+   13cc   13 ba                 DW DDOT
+   13ce   03 79                 DW SEMIS
+                                ;
+   13d0   81 bf                 DW $81BF          ; ?
+   13d2   13 c4                 DW DOT - 4
+   13d4   05 75         QUES:   DW NEST
+   13d6   04 fa                 DW AT
+   13d8   13 c8                 DW DOT
+   13da   03 79                 DW SEMIS
+                                ;
+   13dc   82 55 ae              DB $82,$55,$AE  ; U.
+   13df   13 d0                 DW QUES - 4
+   13e1   05 75         UDOT:   DW NEST
+   13e3   05 a5                 DW ZERO
+   13e5   13 ba                 DW DDOT
+   13e7   03 79                 DW SEMIS
+                                ;
+   13e9   85 56 4c 49           DB $85,"VLIS",$D4 ; VLIST
+   13ed   53 d4         
+   13ef   13 dc                 DW UDOT - 5
+   13f1   05 75         VLIST:  DW NEST
+   13f3   05 73                 DW CR
+   13f5   00 86                 DW LIT
+   13f7   00 80                 DW $0080
+   13f9   06 8e                 DW FOUT
+   13fb   05 1e                 DW EX
+   13fd   06 b3                 DW CNTX
+   13ff   04 fa                 DW AT
+   1401   04 fa                 DW AT
+   1403   06 8e         VLIS1:  DW FOUT
+   1405   04 fa                 DW AT
+   1407   05 c8                 DW CL
+   1409   07 98                 DW GTR
+   140b   00 d0                 DW ZBRCH
+   140d   14 17                 DW VLIS2
+   140f   05 73                 DW CR
+   1411   05 a5                 DW ZERO
+   1413   06 8e                 DW FOUT
+   1415   05 1e                 DW EX
+   1417   04 b6         VLIS2:  DW DUP
+   1419   0c e0                 DW ID
+   141b   07 ba                 DW SPC
+   141d   07 ba                 DW SPC
+   141f   08 49                 DW PFA
+   1421   08 15                 DW LFA
+   1423   04 fa                 DW AT
+   1425   04 b6                 DW DUP
+   1427   03 d2                 DW ZEQAL
+   1429   05 6c                 DW QTERM
+   142b   03 0b                 DW FFOR
+   142d   00 d0                 DW ZBRCH
+   142f   14 03                 DW VLIS1
+   1431   04 8d                 DW DROP
+   1433   03 79                 DW SEMIS
+                                ;
+                                ;
+                        ;HRJ Hart LISTING CHANGES MSG
+   1435   87 4d 45 53           DB $87,"MESSAG",$C5 ; MESSAGE
+   1439   53 41 47 c5   
+                                ;does not have a test for disk present
+   143d   13 e9                 DW VLIST - 8
+   143f   05 75         MSG:    DW NEST
+   1441   0a 1b                 DW PDQ
+   1443   07 20 4d 53           DB $07," MSG # "
+   1447   47 20 23 20   
+   144b   13 c8                 DW DOT
+   144d   03 79         MESS3:  DW SEMIS
+                                ;
+                                ;
+   144f   81 c9                 DW $81C9          ; I
+   1451   14 35                 DW MSG - 10
+   1453   14 55         I:      DW $ + 2
+   1455   12                    INC R2
+   1456   19                    INC R9
+   1457   19                    INC R9
+   1458   19                    INC R9
+   1459   42                    LDA R2
+   145a   59                    STR R9
+   145b   29                    DEC R9
+   145c   02                    LDN R2
+   145d   59                    STR R9
+   145e   22                    DEC R2
+   145f   22                    DEC R2
+   1460   dc                    SEP RC
+                                ;
+   1461   84 57 41 52           DB $84,"WAR",$CD ; WARM
+   1465   cd            
+   1466   14 4f                 DW I - 4
+   1468   14 6a         WRM:    DW $ + 2
+   146a   c0 15 15              LBR WARM
+                                ;
+                                ;
+   146d   84 43 4f 4c           DB $84,"COL",$C4 ; COLD
+   1471   c4            
+   1472   14 61                 DW WRM - 7
+   1474   14 76         CLD:    DW $ + 2
+   1476   c0 15 00              LBR COLD
+                                ;
+                                ;
+   1479   84 53 2d 3e           DB $84,"S->",$C4 ; S->D
+   147d   c4            
+   147e   14 6d                 DW CLD - 7
+   1480   14 82         STOD:   DW $ + 2
+   1482   49                    LDA R9
+   1483   fe                    SHL
+   1484   33 8a                 BDF SNEG
+   1486   f8 00                 LDI $00
+   1488   30 8c                 BR SSKP
+   148a   f8 ff         SNEG:   LDI $FF
+   148c   19            SSKP:   INC R9
+   148d   59                    STR R9
+   148e   19                    INC R9
+   148f   59                    STR R9
+   1490   29                    DEC R9
+   1491   dc                    SEP RC
+                                ;
+                        ;;HRJ ROUTINES REMOVED: (LINE) 
+                        ;; AND OTHER DISK I/O ROUTINE ZYZZY 
+                        
+                        ;;HRJ TASK IS MODIFIED
+   1492   84 54 41 53           DB $84, "TAS",$CB  ;TASK
+   1496   cb            
+   1497   14 79                 DW STOD-7
+   1499   05 75                 DW NEST
+   149b   03 79                 DW SEMIS
+                                ;
+                                ;
+   1500                         PAGE
+                                ;
+                                ;        
+   1500   f8 00         COLD:   LDI HIGH (START + 12) ; >> 8
+   1502   b7                    PHI R7
+   1503   f8 6a                 LDI LOW (START + 12)
+   1505   a7                    PLO R7
+   1506   f8 0f                 LDI HIGH (FRTH + 14) ; >> 8
+   1508   b8                    PHI R8
+   1509   f8 1b                 LDI ((FRTH + 14) AND $00FF)
+   150b   a8                    PLO R8
+   150c   47                    LDA R7
+   150d   58                    STR R8
+   150e   18                    INC R8
+   150f   47                    LDA R7
+   1510   58                    STR R8
+   1511   f8 16                 LDI $16
+   1513   30 17                 BR PUTF
+   1515   f8 10         WARM:   LDI $10
+   1517   af            PUTF:   PLO RF
+   1518   f8 00                 LDI HIGH (START + $10) ; >> 8
+   151a   b7                    PHI R7
+   151b   f8 6e                 LDI (START + $10)
+   151d   a7                    PLO R7
+   151e   47                    LDA R7
+   151f   bd                    PHI RD
+   1520   b8                    PHI R8
+   1521   07                    LDN R7
+   1522   ad                    PLO RD
+   1523   a8                    PLO R8
+   1524   f8 6a                 LDI (START + 12)
+   1526   a7                    PLO R7
+   1527   47            WRMLP:  LDA R7
+   1528   58                    STR R8
+   1529   18                    INC R8
+   152a   2f                    DEC RF
+   152b   8f                    GLO RF
+   152c   3a 27                 BNZ WRMLP
+   152e   f8 00                 LDI HIGH NEXT ;>> 8
+   1530   bc                    PHI RC
+   1531   f8 92                 LDI NEXT
+   1533   ac                    PLO RC
+   1534   f8 73                 LDI ((ABORT + 2) AND $00FF)
+   1536   aa                    PLO RA
+   1537   f8 0f                 LDI HIGH (ABORT + 2) ;>> 8
+   1539   ba                    PHI RA
+   153a   c0 03 67              LBR (RP1 + 2)
+                                ;
+                        ;
+                        ;;HRJ NEW WORDS FROM Hart LISTING
+                        ; STAND ALONE I/O VECTORS
+                        
+   153d   e2            REMIT:  SEX R2		;EMIT
+   153e   6e            CHROUT: INP 6		;UART STATUS
+   153f   fe                    SHL
+   1540   3b 3e                 BNF CHROUT
+   1542   e9                    SEX R9
+   1543   19                    INC R9
+   1544   66                    OUT 6
+   1545   29                    DEC R9
+   1546   29                    DEC R9
+   1547   29                    DEC R9
+   1548   29                    DEC R9
+   1549   dc                    SEP RC
+                        ;
+   154a   e2            RCR:    SEX R2          ;CR
+   154b   6e                    INP 6
+   154c   fe                    SHL
+   154d   3b 4b                 BNF RCR+1
+   154f   f8 0d                 LDI 0DH
+   1551   52                    STR R2
+   1552   66                    OUT 6           ;OUTPUT
+   1553   22                    DEC R2
+   1554   6e            RCR1:   INP 6
+   1555   fe                    SHL
+   1556   3b 54                 BNF RCR1
+   1558   f8 0a                 LDI $0A
+   155a   52                    STR R2
+   155b   66                    OUT 6
+   155c   22                    DEC R2
+   155d   6e            RCR2:   INP 6
+   155e   fe                    SHL
+   155f   3b 5d                 BNF RCR2
+   1561   f8 00                 LDI $00
+   1563   52                    STR R2
+   1564   66                    OUT 6
+   1565   22                    DEC R2
+   1566   6e            RCR3:   INP 6
+   1567   fe                    SHL
+   1568   3b 66                 BNF RCR3
+   156a   f8 00                 LDI $00
+   156c   52                    STR R2
+   156d   66                    OUT 6
+   156e   22                    DEC R2
+   156f   6e            RCR4:   INP 6
+   1570   fe                    SHL
+   1571   3b 6f                 BNF RCR4
+   1573   f8 00                 LDI $00
+   1575   52                    STR R2
+   1576   66                    OUT 6
+   1577   22                    DEC R2
+M  1578   6e            RCR4:   INP 6
+   1579   fe                    SHL
+   157a   3b 6f                 BNF RCR4
+   157c   f8 00                 LDI $00
+   157e   52                    STR R2
+   157f   66                    OUT 6
+   1580   22                    DEC R2
+M  1581   6e            RCR4:   INP 6
+   1582   fe                    SHL
+   1583   3b 6f                 BNF RCR4
+   1585   f8 00                 LDI $00
+   1587   52                    STR R2
+   1588   66                    OUT 6
+   1589   22                    DEC R2
+M  158a   6e            RCR4:   INP 6
+   158b   fe                    SHL
+   158c   3b 6f                 BNF RCR4
+   158e   f8 00                 LDI $00
+   1590   52                    STR R2
+   1591   66                    OUT 6
+   1592   22                    DEC R2
+M  1593   6e            RCR4:   INP 6
+   1594   fe                    SHL
+   1595   3b 6f                 BNF RCR4
+   1597   f8 00                 LDI $00
+   1599   52                    STR R2
+   159a   66                    OUT 6
+   159b   22                    DEC R2
+M  159c   6e            RCR4:   INP 6
+   159d   fe                    SHL
+   159e   3b 6f                 BNF RCR4
+   15a0   f8 00                 LDI $00
+   15a2   52                    STR R2
+   15a3   66                    OUT 6
+   15a4   22                    DEC R2
+   15a5   6e            RCR5:   INP 6
+   15a6   fe                    SHL
+   15a7   3b a5                 BNF RCR5
+   15a9   f8 00                 LDI $00
+   15ab   52                    STR R2
+   15ac   66                    OUT 6
+   15ad   22                    DEC R2
+   15ae   6e            RCR6:   INP 6
+   15af   fe                    SHL
+   15b0   3b ae                 BNF RCR6
+   15b2   f8 00                 LDI $00
+   15b4   52                    STR R2
+   15b5   66                    OUT 6
+   15b6   22                    DEC R2
+   15b7   dc                    SEP RC
+                                ;
+   15b8   e2            RKEY:   SEX R2          ;KEY
+   15b9   6e            STAT:   INP 6
+   15ba   f6                    SHR
+   15bb   3b b9                 BNF STAT
+   15bd   19                    INC R9
+   15be   19                    INC R9
+   15bf   19                    INC R9
+   15c0   e9                    SEX R9
+   15c1   6d                    INP 5
+   15c2   fa 7f                 ANI $7F
+   15c4   59                    STR R9
+   15c5   29                    DEC R9
+   15c6   f8 00                 LDI 00H
+   15c8   59                    STR R9
+   15c9   dc                    SEP RC
+                                ;
+   15ca   e2            RTERM:  SEX R2          ;TERMINAL
+   15cb   19                    INC R9
+   15cc   19                    INC R9
+   15cd   19                    INC R9
+   15ce   6e                    INP 6
+   15cf   f6                    SHR
+   15d0   3b e1                 BNF T0OUT
+   15d2   6d                    INP 5
+   15d3   fb 1b                 XRI $1B          ;ESC
+O  15d5   c4 c4 c4 c4           BNX T0OUT
+   15d9   6e            TWAIT:  INP 6
+   15da   f6                    SHR
+   15db   33 d9                 BDF TWAIT
+   15dd   f8 01                 LDI 01
+   15df   30 e3                 BR THOUT
+   15e1   f8 00         T0OUT:  LDI 00
+   15e3   59            THOUT:  STR R9
+   15e4   29                    DEC R9
+   15e5   f8 00                 LDI 00
+   15e7   59                    STR R9
+   15e8   e9                    SEX R9
+   15e9   dc                    SEP RC
+                                ;
+                        ;;HRJ END OF NEW WORDS
+   15ea   c4            LEND:   NOP                 ; INITIAL FENCE IS HERE
+                                ;
+                                ; TO EXTEND THIS PORTION TO INCLUDE
+                                ; NEW WORDS, FIRST USE
+                                ;    HERE.  TO FIND END OF YOUR NEW VERSION
+                                ; THEN USE THE FOLLOWING:
+                                ;
+                                ;    LATEST 12 +ORIGIN !
+                                ;    HERE  28 +ORIGIN !
+                                ;    HERE  30 +ORIGIN !
+                                ;    HERE FENCE !
+                                ;
+                                ; THEN USE   BYE TO GET BACK TO YOUR MONITOR
+                                ; THEN USE YOUR MONITOR ROUTINES TO SAVE MEMORY
+                                ; FROM 0000 TO END ADDRESS
+                                ;
+                                ; THIS PROCEDURE WILL ALLOW YOU TO CONTINUE
+                                ; BUILDING ON YOUR FORTH VOCABULARY WITHOUT THE
+                                ; DISC INTERFACE
+                                ;
+                                ;
+                                ;
+                                ;
+                                ;
+   15eb                         END
+0f71  ABORT         10b9  ABS           126e  AGAIN         0747  ALLOT     
+04fa  AT            11cb  BACK          0188  BAD           0186  BAD2      
+01d4  BADCHR        01d3  BADLEN        06d8  BASE          05ec  BBUF      
+0ffd  BCOMP         1305  BDIGS         11d9  BEGIN         05be  BL        
+067b  BLK           0b30  BLNK          01e7  BOK           00bf  BRANCH    
+00bd  BRCH          05f8  BSCR          11be  BYE           050d  CAT       
+0764  CCMA          0113  CEND          0535  CEX           0825  CFA       
+153e  CHROUT        05c8  CL            1474  CLD           0246  CMOVE     
+0904  CMPL          0dbc  CNST          09a7  CNT           06b3  CNTX      
+0991  CODE          1500  COLD          0d77  COLON         0753  COMMA     
+0100  COMP          0589  CONST         0573  CR            06c1  CRNT      
+0d3d  CRT1          0d17  CRTE          06f6  CSP           0009  CSTACK    
+10c8  DABS          0d9f  DCODE         085e  DCSP          13ba  DDOT      
+1386  DDOTR         0238  DELIM         0f2d  DFN           016b  DGT       
+1343  DIG           135f  DIG1          136e  DIGS          1370  DIGS1     
+0e4b  DLTL          0e5b  DLTL1         0458  DMIN          120d  DO        
+017c  DOK           0e06  DOSEG         13c8  DOT           0fc7  DOTQ      
+0fe7  DOTQ1         0fef  DOTQ2         13a9  DOTR          0662  DP        
+06e2  DPL           042a  DPLUS         10a7  DPM           10b1  DPM1      
+048d  DROP          04b6  DUP           0e12  DUZ1          0712  DV        
+1314  EDIGS         12b5  ELSEE         054c  EMIT          01fe  ENCL      
+026e  END2          1260  ENDD          11eb  ENDIFF        0780  EQL       
+0ca6  ERR1          0c98  ERROR         0b1f  ERS           051e  EX        
+08a3  EXC           00a6  EXE           0a38  EXPT          0a72  EXPT1     
+0a98  EXPT2         0a8a  EXPT3         0a42  EXPT4         0a8c  EXPT5     
+02f3  FAND          030b  FFOR          0aff  FILL          0684  FIN       
+0196  FIND          05d4  FIRST         4000  FIRSTB        06ec  FLD       
+0659  FNCE          105a  FORG          068e  FOUT          0215  FRST      
+0f0d  FRTH          0698  FSCR          033d  FSPAT         0324  FXOR      
+039d  GR            0798  GTR           0737  HERE          0709  HLD       
+0b3f  HOLD          1453  I             0ce0  ID            0543  IEMIT     
+129e  IFF           101b  IMMED         0e94  INPT          055e  KEY       
+091a  LB            0df6  LBLD          15ea  LEND          078c  LESS      
+0815  LFA           05e0  LIMIT         6c2c  LIMITB        0086  LIT       
+1220  LOOP          01a4  LOOP1         01b6  LOOP2         020d  LOP1      
+0220  LOP2          0281  LP7B          02cb  LPC5          0e3e  LT1       
+0e2e  LTL           0805  LTST          00ec  LUPE          0140  LUPE1     
+0265  LUUP          0389  LVE           10d6  MAX           10e4  MAX1      
+0965  MDCML         07c9  MDUP          144d  MESS3         0c7e  MF1       
+0c5e  MFIND         094f  MHEX          0cc8  MIN           0416  MINOS     
+0774  MINS          0412  MINUS         0cd6  MN1           115f  MODD      
+11ae  MON           143f  MSG           110a  MSLAS         1192  MSMOD     
+10ed  MSTAR         0575  NEST          01ad  NEXCHR        0092  NEXT      
+0833  NFA           0c24  NMB1          0c4a  NMB2          0c54  NMB3      
+0c06  NMBR          00dd  NO            03de  NONE          022a  NULL      
+06a5  OFST          05ad  ONE           0605  ORGN          0473  OVER      
+0c8a  PABRT         0b57  PAD           102b  PAREN         097b  PCODE     
+0150  PDO           0a1b  PDQ           0849  PFA           1236  PLOOP     
+0124  PLUPE         03f7  PLUS          071b  PLUS1         0728  PLUS2     
+04c6  PLUSS         1095  PM            109f  PM1           0bf3  PNM1      
+0bf9  PNM2          0bbb  PNMBR         04d7  POP           0613  PORGN     
+0eb8  PT1           0eae  PT2           0eb2  PT3           0ed2  PT4       
+0ecc  PT5           0ed0  PT6           1517  PUTF          0f63  Q1        
+0f4a  Q2            088b  QCMP          08cd  QCSP          0871  QERR      
+08ea  QLDG          08ba  QPR           0e66  QSTK          056c  QTERM     
+0aaa  QUER          13d4  QUES          0f40  QUIT          03bd  R         
+0000  R0            0001  R1            000a  R10           000b  R11       
+000c  R12           000d  R13           000e  R14           000f  R15       
+0002  R2            0003  R3            0004  R4            0005  R5        
+0006  R6            0007  R7            0008  R8            0009  R9        
+000a  RA            000b  RB            0928  RBK           000c  RC        
+154a  RCR           1554  RCR1          155d  RCR2          1566  RCR3      
+156f  RCR4          15a5  RCR5          15ae  RCR6          000d  RD        
+000e  RE            153d  REMIT         1285  REPEA         000f  RF        
+03ad  RG            15b8  RKEY          06ff  RNU           0629  RO        
+07a6  ROT           0365  RP1           0002  RSTACK        15ca  RTERM     
+0fb4  SEMIC         0379  SEMIS         132d  SIGN          133d  SIGN1     
+0232  SKIP          02a0  SKP9A         02de  SKPD8         114f  SLASH     
+113f  SLMOD         093d  SMDG          148a  SNEG          0620  SO        
+0350  SP1           12e8  SPACS         12fe  SPAX1         12f8  SPAX2     
+07ba  SPC           148c  SSKP          1180  SSLA          116f  SSMOD     
+1130  STAR          005e  START         15b9  STAT          1480  STOD      
+03e0  STOR          06cd  STT           0499  SWAP          15e1  T0OUT     
+04e3  TGLE          1202  THEN          15e3  THOUT         1039  THREE     
+0633  TIB           1041  TICK          2fff  TOPRAM        07e4  TR1       
+09f0  TRL1          09e8  TRLG          07e0  TRVS          15d9  TWAIT     
+05b5  TWO           09ca  TYP1          09ba  TYPE          13e1  UDOT      
+124c  UNTIL         02a5  UOUT          0592  USER          02b2  USLSH     
+0de2  USR           0278  USTAR         0580  VAR           0dd1  VARB      
+0f05  VB1           0ee5  VBLY          0671  VL            1403  VLIS1     
+1417  VLIS2         13f1  VLIST         1515  WARM          0096  WBR       
+0b7e  WD1           0b82  WD2           12d7  WHILE         063f  WIDTH     
+0b6a  WORD          1468  WRM           1527  WRMLP         064d  WRNG      
+0ac2  X             0aee  X1            0af2  X2            0af6  XEND      
+00d0  ZBRCH         03d2  ZEQAL         05a5  ZERO          03eb  ZLESS     
+03da  ZONE          0000  r0            0001  r1            0002  r2        
+0003  r3            0004  r4            0005  r5            0006  r6        
+0007  r7            0008  r8            0009  r9            000a  ra        
+000b  rb            000c  rc            000d  rd            000e  re        
+000f  rf            
+

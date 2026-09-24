@@ -1,0 +1,92 @@
+:
+STARTING HOLLYWOOD COMPUTER DEMO
+N IS 10
+N IS 9
+N IS 8
+N IS 7
+N IS 6
+N IS 5
+N IS 4
+N IS 3
+N IS 2
+N IS 1
+
+:LIST
+
+10 PRINT "STARTING HOLLYWOOD COMPUTER DEMO"
+20 LET N=10
+30 PRINT "N IS "; N
+40 REM CALL $38 TO OUTPUT N ON PORT 4, (LEDs)
+50 LET X=USR(38,4,N)
+60 LET N=N-1
+70 IF N>0 GOTO 30
+90 END
+
+:
+
+; "NEW" would not clear embedded program!
+; to clear embedded program, must jump to "COMMAND" at 09F8H.
+; a "USR(COMMAND)" may do that.
+; that's (9 X 256) +(15 X 16) + 8 = 2552 decimal
+
+:LIST
+
+10 PRINT "STARTING HOLLYWOOD COMPUTER DEMO"
+20 LET N=10
+30 PRINT "N IS "; N
+40 REM CALL $38 TO OUTPUT N ON PORT 4, (LEDs)
+50 LET X=USR(38,4,N)
+60 LET N=N-1
+70 IF N>0 GOTO 30
+90 END
+
+:X=USR(2552)
+
+NEW? Y
+:LIST
+
+; I enter a new program...
+
+:10 I=1
+20 PRINT I
+30 I=I+1
+40 IF I<10 GOTO 20
+50 END
+
+:RUN
+1
+2
+3
+4
+5
+6
+7
+8
+9
+
+;enter IDIOT monitor with USR(32)
+
+:USR(32)
+
+!201
+:X=USR(32)
+
+*?M 0000 20
+0000 7100 E4C0 0800 C009 40C0 09A4 C006 6608;
+0010 1802 8020 97BA 48D5 58D5 0679 8100 0080
+*
+
+;back to Tiny BASIC via COMMAND; keep last program
+
+*$P09F8
+
+NEW? N
+:LIST
+
+10 I=1
+20 PRINT I;" ";
+30 I=I+1
+40 IF I<10 GOTO 20
+50 END
+
+:

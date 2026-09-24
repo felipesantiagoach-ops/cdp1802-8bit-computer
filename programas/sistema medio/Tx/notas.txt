@@ -1,0 +1,1 @@
+no funcionaron en el sistema medio, si funicionaron algunos en el simulador, pero no se testearon todos

@@ -1,0 +1,179 @@
+                        ; Origin set to 00000H, EOF = 0000DH
+   0000                 		ORG  00000H
+                        
+                        ; CPU Type:
+                        		CPU 1802
+                        
+                        ; Labels:
+                        
+                        ; Register Definitions:
+   0000                 R0		EQU 0
+   0001                 R1		EQU 1
+   0002                 R2		EQU 2
+   0003                 R3		EQU 3
+   0004                 R4		EQU 4
+   0005                 R5		EQU 5
+   0006                 R6		EQU 6
+   0007                 R7		EQU 7
+   0008                 R8		EQU 8
+   0009                 R9		EQU 9
+   000a                 RA		EQU 10
+   000b                 RB		EQU 11
+   000c                 RC		EQU 12
+   000d                 RD		EQU 13
+   000e                 RE		EQU 14
+   000f                 RF		EQU 15
+                        
+                        ; Start code segment
+                        ;------------------------------------------------------
+   0000                 INICIO1
+   0000   7a            		REQ				; reset Q
+   0001                 START1
+   0001   f8 10         		LDI  010H 		; al parecer el cero va adelante para indicar que es hexadecimal
+   0003   b1            		PHI  R1			; carga el valor de D a R1.1
+   0004                 LOOP1
+   0004   21            		DEC  R1			; decrementa R1.1
+   0005   91            		GHI  R1			; carga R1.1 en D
+   0006   3a 04         		BNZ  LOOP1		; salta si D es 0
+   0008   31 00         		BQ   INICIO1	; salta si Q == 1 (para que Q conmute)
+   000a   7b            		SEQ				; set Q
+   000b   30 01         		BR   START1		; salto incondicional
+                        
+                        ;----------------------------------------------------
+   0100                 		ORG  00100H
+   0100                 START2
+   0100   7a            		REQ				; reset Q
+   0101                 ENCENDIDO2
+   0101   3c 00         		BN1  START2		; salta si EF1 está en estado bajo
+   0103   7b            		SEQ				; set Q
+   0104   30 01         		BR   ENCENDIDO2	; salto incondicional
+                        
+                        
+                        ;-------------------------------------------------------
+   0200                 		ORG  00200H
+   0200                 START3
+   0200   7a            		REQ				; reset Q
+   0201                 INICIO3
+   0201   f8 10         		LDI  10H		; carga 10 en D
+   0203   b1            		PHI  R1			; carga el valor de D en R1.1
+   0204                 LOOP3
+   0204   21            		DEC  R1			; decremanta R1
+   0205   91            		GHI  R1			; carga el valor de R1.1 en D
+   0206   3a 04         		BNZ  LOOP3		; salta si D = 0
+   0208   31 00         		BQ   START3		; salta si Q = 1
+   020a   7b            		SEQ				; set Q
+   020b                 ENCENDIDO3
+   020b   3c 00         		BN1  START3		; salta si EF1 está en estado bajo
+   020d   7b            		SEQ				; set Q
+   020e   30 01         		BR   INICIO3	; salto incondicional
+                        
+                        ;-----------------------------------------------------------
+   0300                 		ORG   00300H
+                        
+                        ; antes de empezar suponemos que el dato a enviar está cargado en el registro R2.1 (porque R0 es el contador de programa)
+   0300                 INICIO				; esta parte son solo definiciones
+   0300   f8 00         		LDI 00H
+   0302   b8            		PHI R8
+   0303   f8 40         		LDI 40H
+   0305   a8            		PLO R8		; se cargó 0040H en R8, que es la SUB de transmisión
+   0306   f8 00         		LDI 00H
+   0308   b9            		PHI R9
+   0309   f8 60         		LDI 60H
+   030b   a9            		PLO R9		; se cargó 0060H en R9, que es la SUB de DELAY1 (para la SUB de transmisión)
+   030c   f8 00         		LDI 00H
+   030e   ba            		PHI RA
+   030f   f8 70         		LDI 70H
+   0311   aa            		PLO RA		; se cargó 0070H en RA, que es la SUB de DELAY2 (para el programa principal)
+                        ;acá está la rutina principal
+   0312   7b            		SEQ				; empezamos ponindo la línea estado inactivo
+   0313   f8 41         LOOP	LDI 65D			; caracter ascii A (mayúscula)
+   0315   a4            		PLO R4			; cargo el valor de D a R4 (para tener guardado el último caracter enviado)
+   0316   b2            		PHI R2			; cargo el valor de D a R2 (para la subrutina)
+   0317   f8 07         		LDI 07H			; cargo 7 en D
+   0319   a5            		PLO R5			; cargo D en R5.0 (para hacer 7 repeticiones en la rutina SEND)
+   031a   d8            SEND	SEP R8			; llamo a la SUB que transmite lo que está en R2
+   031b   da            		SEP RA			; llamo a la SUB DELAY2
+   031c   14            		INC R4			; incremento R4 (paso al siguiente caracter)
+   031d   84            		GLO R4			; carga R4.0 en D
+   031e   b2            		PHI R2			; carga D en R2.1
+   031f   25            		DEC R5			; decremento R5
+   0320   85            		GLO R5			; carga la parte baja de R3 en D
+   0321   3a 1a         		BNZ SEND		; salta si D != 0 (va a saltar 7 veces, enviando ABCDEFG)
+                        	; envio CRLF para hacer el salto de línea
+   0323   f8 0d         		LDI 13D			; caracter ascii CR (carriage return)
+   0325   b2            		PHI R2			; cargo el valor de D a R2 (para la subrutina)
+   0326   d8            		SEP R8			; llamo a la SUB que transmite lo que está en R2
+   0327   da            		SEP RA			; llamo a la SUB DELAY2
+   0328   f8 0a         		LDI 10D			; caracter ascii  (line feed)
+   032a   b2            		PHI R2			; cargo el valor de D a R2 (para la subrutina)
+   032b   d8            		SEP R8			; llamo a la SUB que transmite lo que está en R2
+   032c   da            		SEP RA			; llamo a la SUB DELAY2
+   032d   30 13         		BR LOOP			; salto incondicional
+                        
+                        
+                        ;---------subrutina de trasmisión de datos-------------------------
+   033f                 		ORG  0033FH	; se le sumó 0300H porque el código empieza allí
+   033f   d0            BACK1	SEP R0		; retorna a la subrutina principal
+   0340                 TRANSM
+   0340   7b            		SEQ			; Q = 1 (línea en estado inactivo)
+   0341   7a            		REQ  		; Q = 0 (bit de start)
+   0342   d9            		SEP R9		; llamar subrutina de demora de 3,33 ms
+   0343   f8 08         		LDI 08H		; carga el valor inmediato en D
+   0345   a3            		PLO R3		; carga el valor de D en R3.0 (este es el contador para iterar cada bit del dato en R2)
+                        					; tiene que ser la parte baja de R3, porque DEC R3 decrementa el registro entero de 16 bits
+   0346   92            SHIFT	GHI R2		; carga el valor de R2.1 en D (acá se supone que está el byte que queremos transmitir)
+   0347   f6            		SHR			; desplaza D a la derecha, cargando el LSB en el bit DF
+   0348   b2            		PHI R2		; carga el valor de D en R2.1
+   0349   3b 4d         		BNF ESCERO	; salta si DF = 0
+   034b   7b            		SEQ			; salida Q igual a 1
+   034c   38            		SKP			; salta la siguiente instrucción de manera incondicional
+   034d   7a            ESCERO	REQ			; salida Q igual a 0
+   034e   d9            		SEP R9		; llamar subrutina de demora de 3,33 ms
+   034f   23            		DEC R3		; decremento el contador
+   0350   83            		GLO R3		; carga la parte baja de R3 en D
+   0351   3a 46         		BNZ SHIFT	; salta si D != 0
+   0353   7b            		SEQ			; Q = 1 (bit de stop) (el ingeniero Korpys dijo que ponga dos bits de stop (dos bit-time))
+   0354   d9            		SEP R9		; llamar subrutina de demora de 3,33 ms dos veces
+   0355   d9            		SEP R9
+   0356   30 3f         		BR BACK1	; salto incondicional
+                        
+                        
+                        
+                        
+                        
+                        ;---------subrutina de ratardo de tranmisión-------------------------
+   035f                 		ORG  0035FH		; se le sumó 0300H porque el código empieza allí
+   035f   d8            BACK2	SEP R8			; retorna a subrutina de transmisión 1-Byte	2-Machine Cycles	1 time
+   0360                 DELAY1
+   0360   f8 7b         		LDI  123D		; carga el valor inmediato en D		2-Byte	2-Machine Cycles	1 time
+   0362   a1            		PLO  R1			; carga el valor de D en R1.0		1-Byte	2-Machine Cycles	1 time
+   0363                 TIMER1
+   0363   21            		DEC  R1     	; decrementa R1						1-Byte	2-Machine Cycles	R1 times
+   0364   81            		GLO  R1     	; carga la parte baja de R1 en D	1-Byte	2-Machine Cycles	R1 times
+   0365   3a 63         		BNZ  TIMER1   	; salta si D != 0					2-Byte	2-Machine Cycles	R1 times
+   0367   30 5f         		BR   BACK2		; salto incondicional				2-Byte	2-Machine Cycles	1 time
+                        
+                        
+                        ;---------subrutina de retardo del programa principal-------------------------
+   036f                 		ORG  0036FH		; se le sumó 0300H porque el código empieza allí
+   036f   d0            BACK3	SEP R0			; retorna a la rutina principal
+   0370                 DELAY2
+   0370   f8 50         		LDI  050H		; carga el valor inmediato en D
+   0372   b1            		PHI  R1			; carga el valor de D en R1.1
+   0373                 TIMER2
+   0373   21            		DEC  R1     	; decrementa R1
+   0374   91            		GHI  R1     	; carga la parte alta de R1 en D
+   0375   3a 73         		BNZ  TIMER2   	; salta si D != 0
+   0377   30 6f         		BR   BACK3		; salto incondicional
+   0379                 		END
+033f  BACK1         035f  BACK2         036f  BACK3         0360  DELAY1    
+0370  DELAY2        0101  ENCENDIDO2    020b  ENCENDIDO3    034d  ESCERO    
+0300  INICIO        0000  INICIO1       0201  INICIO3       0313  LOOP      
+0004  LOOP1         0204  LOOP3         0000  R0            0001  R1        
+0002  R2            0003  R3            0004  R4            0005  R5        
+0006  R6            0007  R7            0008  R8            0009  R9        
+000a  RA            000b  RB            000c  RC            000d  RD        
+000e  RE            000f  RF            031a  SEND          0346  SHIFT     
+0001  START1        0100  START2        0200  START3        0363  TIMER1    
+0373  TIMER2        0340  TRANSM        
+

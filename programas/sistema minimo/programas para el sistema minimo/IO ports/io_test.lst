@@ -1,0 +1,83 @@
+                        ; Origin set to 00000H
+   0000                 		ORG  00000H
+                        
+                        ; CPU Type:
+                        		CPU 1802
+                        
+                        ; Labels:
+                        
+                        ; Register Definitions:
+   0000                 R0		EQU 0
+   0001                 R1		EQU 1
+   0002                 R2		EQU 2
+   0003                 R3		EQU 3
+   0004                 R4		EQU 4
+   0005                 R5		EQU 5
+   0006                 R6		EQU 6
+   0007                 R7		EQU 7
+   0008                 R8		EQU 8
+   0009                 R9		EQU 9
+   000a                 RA		EQU 10
+   000b                 RB		EQU 11
+   000c                 RC		EQU 12
+   000d                 RD		EQU 13
+   000e                 RE		EQU 14
+   000f                 RF		EQU 15
+                        ; Subroutines name definitions
+   000a                 DLY2	EQU 10		; DELAY2 es un delay largo
+   00ff                 CONTLONG	EQU 0FFH	; contador para el delay largo (delay 2)
+                        
+                        ; Start code segment
+                        
+                        ; antes de empezar suponemos que el dato a enviar está cargado en el registro R2.1 (porque R0 es el contador de programa)
+   0000                 INICIO				; esta parte son solo definiciones
+   0000   f8 00         		LDI 00H
+   0002   ba            		PHI DLY2
+   0003   f8 70         		LDI 70H
+   0005   aa            		PLO DLY2	; se cargó 0070H en DLY2 = RA, que es la SUB de DELAY2 (para el programa principal)
+                        ;acá está la rutina principal
+   0006   7a            LOOP	REQ				; Q encendido
+   0007   61            		OUT 1
+   0008   da            		SEP DLY2		; llamo a la SUB DELAY2
+   0009   7b            		SEQ				; Q encendido
+   000a   61            		OUT 1
+   000b   da            		SEP DLY2		; llamo a la SUB DELAY2
+   000c   7a            		REQ				; Q apagado
+   000d   62            		OUT 2
+   000e   da            		SEP DLY2		; llamo a la SUB DELAY2
+   000f   7b            		SEQ				; Q encendido
+   0010   63            		OUT 3
+   0011   da            		SEP DLY2		; llamo a la SUB DELAY2
+   0012   7a            		REQ				; Q apagado
+   0013   64            		OUT 4
+   0014   da            		SEP DLY2		; llamo a la SUB DELAY2
+   0015   7b            		SEQ				; Q encendido
+   0016   65            		OUT 5
+   0017   da            		SEP DLY2		; llamo a la SUB DELAY2
+   0018   7a            		REQ				; Q apagado
+   0019   66            		OUT 6
+   001a   da            		SEP DLY2		; llamo a la SUB DELAY2
+   001b   7b            		SEQ				; Q encendido
+   001c   67            		OUT 7
+   001d   da            		SEP DLY2		; llamo a la SUB DELAY2
+   001e   30 06         		BR LOOP			; salto incondicional
+                        
+                        ;---------subrutina de retardo del programa principal-------------------------
+   006f                 		ORG  0006FH
+   006f   d0            BACK3	SEP R0			; retorna a la rutina principal
+   0070                 DELAY2
+   0070   f8 ff         		LDI  CONTLONG	; carga el valor inmediato en D
+   0072   b1            		PHI  R1			; carga el valor de D en R1.1
+   0073                 TIMER2
+   0073   21            		DEC  R1     	; decrementa R1
+   0074   91            		GHI  R1     	; carga la parte alta de R1 en D
+   0075   3a 73         		BNZ  TIMER2   	; salta si D != 0
+   0077   30 6f         		BR   BACK3		; salto incondicional
+   0079                 		END
+006f  BACK3         00ff  CONTLONG      0070  DELAY2        000a  DLY2      
+0000  INICIO        0006  LOOP          0000  R0            0001  R1        
+0002  R2            0003  R3            0004  R4            0005  R5        
+0006  R6            0007  R7            0008  R8            0009  R9        
+000a  RA            000b  RB            000c  RC            000d  RD        
+000e  RE            000f  RF            0073  TIMER2        
+

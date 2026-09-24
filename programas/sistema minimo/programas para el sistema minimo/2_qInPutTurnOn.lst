@@ -1,0 +1,40 @@
+                        ; Origin set to 00000H, EOF = 00006H
+   0000                 		ORG  00000H
+                        
+                        ; CPU Type:
+                        		CPU 1802
+                        
+                        ; Labels:
+                        
+                        ; Register Definitions:
+   0000                 R0		EQU 0
+   0001                 R1		EQU 1
+   0002                 R2		EQU 2
+   0003                 R3		EQU 3
+   0004                 R4		EQU 4
+   0005                 R5		EQU 5
+   0006                 R6		EQU 6
+   0007                 R7		EQU 7
+   0008                 R8		EQU 8
+   0009                 R9		EQU 9
+   000a                 RA		EQU 10
+   000b                 RB		EQU 11
+   000c                 RC		EQU 12
+   000d                 RD		EQU 13
+   000e                 RE		EQU 14
+   000f                 RF		EQU 15
+                        
+                        ; Start code segment
+   0000                 START
+   0000   7a            		REQ				; reset Q
+   0001                 ENCENDIDO
+   0001   3f 00         		BN4  START		; salta si EF4 está en estado bajo
+   0003   7b            		SEQ				; set Q
+   0004   30 01         		BR   ENCENDIDO	; salto incondicional
+   0006                 		END
+0001  ENCENDIDO     0000  R0            0001  R1            0002  R2        
+0003  R3            0004  R4            0005  R5            0006  R6        
+0007  R7            0008  R8            0009  R9            000a  RA        
+000b  RB            000c  RC            000d  RD            000e  RE        
+000f  RF            0000  START         
+

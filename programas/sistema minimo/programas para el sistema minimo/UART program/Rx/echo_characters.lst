@@ -1,0 +1,151 @@
+                        ; Origin set to 00000H
+   0000                 		ORG  00000H
+                        
+                        ; CPU Type:
+                        		CPU 1802
+                        
+                        ; Labels:
+                        
+                        ; Register Definitions:
+   0000                 R0		EQU 0
+   0001                 R1		EQU 1
+   0002                 R2		EQU 2
+   0003                 R3		EQU 3
+   0004                 R4		EQU 4
+   0005                 R5		EQU 5
+   0006                 R6		EQU 6
+   0007                 R7		EQU 7
+   0008                 R8		EQU 8
+   0009                 R9		EQU 9
+   000a                 RA		EQU 10
+   000b                 RB		EQU 11
+   000c                 RC		EQU 12
+   000d                 RD		EQU 13
+   000e                 RE		EQU 14
+   000f                 RF		EQU 15
+                        ; Subroutines name definitions
+   0007                 RX		EQU	7
+   0008                 TX		EQU 8
+   0009                 DLY1	EQU 9		; DELAY1 es un delay corto
+   000a                 DLY2	EQU 10		; DELAY2 es un delay largo
+   00b9                 CONT1DOT5BT	EQU	185D	; contador para un bit-time y medio
+   007b                 CONT1BT	EQU 123D	; contador para el delay de 1 bit-time
+   0050                 CONTLONG	EQU 050H	; contador para el delay largo (delay 2)
+                        
+                        ; Start code segment
+                        
+                        ; antes de empezar suponemos que el dato a enviar está cargado en el registro R2.1 (porque R0 es el contador de programa)
+   0000                 INICIO				; esta parte son solo definiciones
+   0000   f8 00         		LDI 00H
+   0002   b8            		PHI TX
+   0003   f8 b0         		LDI 0B0H
+   0005   a8            		PLO TX		; se cargó 0040H en TX = R8, que es la SUB de transmisión
+   0006   f8 00         		LDI 00H
+   0008   b9            		PHI DLY1
+   0009   f8 e0         		LDI 0E0H
+   000b   a9            		PLO DLY1	; se cargó 0060H en DLY1 = R9, que es la SUB de DELAY1 (para la SUB de transmisión)
+   000c   f8 00         		LDI 00H
+   000e   ba            		PHI DLY2
+   000f   f8 f0         		LDI 0F0H
+   0011   aa            		PLO DLY2	; se cargó 0070H en DLY2 = RA, que es la SUB de DELAY2 (para el programa principal)
+                        ;acá está la rutina principal
+   0012   7b            		SEQ				; empezamos ponindo la línea estado inactivo
+   0013   f8 41         LOOP	LDI 65D			; caracter ascii A (mayúscula)
+   0015   a4            		PLO R4			; cargo el valor de D a R4 (para tener guardado el último caracter enviado)
+   0016   b2            		PHI R2			; cargo el valor de D a R2 (para la subrutina)
+   0017   f8 07         		LDI 07H			; cargo 7 en D
+   0019   a5            		PLO R5			; cargo D en R5.0 (para hacer 7 repeticiones en la rutina SEND)
+   001a   d8            SEND	SEP TX			; llamo a la SUB que transmite lo que está en R2
+   001b   da            		SEP DLY2		; llamo a la SUB DELAY2
+   001c   14            		INC R4			; incremento R4 (paso al siguiente caracter)
+   001d   84            		GLO R4			; carga R4.0 en D
+   001e   b2            		PHI R2			; carga D en R2.1
+   001f   25            		DEC R5			; decremento R5
+   0020   85            		GLO R5			; carga la parte baja de R3 en D
+   0021   3a 1a         		BNZ SEND		; salta si D != 0 (va a saltar 7 veces, enviando ABCDEFG)
+                        	; envio CRLF para hacer el salto de línea
+   0023   f8 0d         		LDI 13D			; caracter ascii CR (carriage return)
+   0025   b2            		PHI R2			; cargo el valor de D a R2 (para la subrutina)
+   0026   d8            		SEP TX			; llamo a la SUB que transmite lo que está en R2
+   0027   da            		SEP DLY2		; llamo a la SUB DELAY2
+   0028   f8 0a         		LDI 10D			; caracter ascii  (line feed)
+   002a   b2            		PHI R2			; cargo el valor de D a R2 (para la subrutina)
+   002b   d8            		SEP TX			; llamo a la SUB que transmite lo que está en R2
+   002c   da            		SEP DLY2		; llamo a la SUB DELAY2
+   002d   30 13         		BR LOOP			; salto incondicional
+                        
+                        
+                        ;---------subrutina de trasmisión de datos-------------------------
+   00af                 		ORG  000AFH
+   00af   d0            BACK1	SEP R0		; retorna a la subrutina principal
+   00b0                 TRANSM
+   00b0   7b            		SEQ			; Q = 1 (línea en estado inactivo)
+   00b1   7a            		REQ  		; Q = 0 (bit de start)
+   00b2   d9            		SEP DLY1	; llamar subrutina de demora de 1 bit-time
+   00b3   f8 08         		LDI 08H		; carga el valor inmediato en D
+   00b5   a3            		PLO R3		; carga el valor de D en R3.0 (este es el contador para iterar cada bit del dato en R2)
+                        					; tiene que ser la parte baja de R3, porque DEC R3 decrementa el registro entero de 16 bits
+   00b6   92            SHIFT	GHI R2		; carga el valor de R2.1 en D (acá se supone que está el byte que queremos transmitir)
+   00b7   f6            		SHR			; desplaza D a la deracha, cargando el LSB en el bit DF
+   00b8   b2            		PHI R2		; carga el valor de D en R2.1
+   00b9   3b bd         		BNF ESCERO	; salta si DF = 0
+   00bb   7b            		SEQ			; salida Q igual a 1
+   00bc   38            		SKP			; salta la siguiente instrucción de manera incondicional
+   00bd   7a            ESCERO	REQ			; salida Q igual a 0
+   00be   d9            		SEP DLY1	; llamar subrutina de demora de 1 bit-time
+   00bf   23            		DEC R3		; decremento el contador
+   00c0   83            		GLO R3		; carga la parte baja de R3 en D
+   00c1   3a b6         		BNZ SHIFT	; salta si D != 0
+   00c3   7b            		SEQ			; Q = 1 (bit de stop) (el ingeniero Korpys dijo que ponga dos bits de stop (dos bit-time))
+   00c4   d9            		SEP DLY1	; llamar subrutina de demora de 1 bit-time dos veces
+   00c5   d9            		SEP DLY1
+   00c6   30 af         		BR BACK1	; salto incondicional
+                        
+                        
+                        
+                        ;---------subrutina de ratardo de recepción-------------------------
+   00cf                 		ORG  000CFH
+   00cf   d7            BACK4	SEP RX			; retorna a subrutina de transmisión 1-Byte	2-Machine Cycles	1 time
+   00d0                 TIMER3
+   00d0   21            		DEC  R1     	; decrementa R1						1-Byte	2-Machine Cycles	R1 times
+   00d1   81            		GLO  R1     	; carga la parte alta de R1 en D	1-Byte	2-Machine Cycles	R1 times
+   00d2   3a d0         		BNZ  TIMER3   	; salta si D != 0					2-Byte	2-Machine Cycles	R1 times
+   00d4   30 cf         		BR   BACK4		; salto incondicional				2-Byte	2-Machine Cycles	1 time
+                        
+                        
+                        ;---------subrutina de ratardo de tranmisión-------------------------
+   00df                 		ORG  000DFH
+   00df   d8            BACK2	SEP TX			; retorna a subrutina de transmisión 1-Byte	2-Machine Cycles	1 time
+   00e0                 DELAY1
+   00e0   f8 7b         		LDI  CONT1BT	; carga el valor inmediato en D		2-Byte	2-Machine Cycles	1 time
+   00e2   a1            		PLO  R1			; carga el valor de D en R1.0		1-Byte	2-Machine Cycles	1 time
+   00e3                 TIMER1
+   00e3   21            		DEC  R1     	; decrementa R1						1-Byte	2-Machine Cycles	R1 times
+   00e4   81            		GLO  R1     	; carga la parte alta de R1 en D	1-Byte	2-Machine Cycles	R1 times
+   00e5   3a e3         		BNZ  TIMER1   	; salta si D != 0					2-Byte	2-Machine Cycles	R1 times
+   00e7   30 df         		BR   BACK2		; salto incondicional				2-Byte	2-Machine Cycles	1 time
+                        
+                        
+                        ;---------subrutina de retardo del programa principal-------------------------
+   00ef                 		ORG  000EFH
+   00ef   d0            BACK3	SEP R0			; retorna a la rutina principal
+   00f0                 DELAY2
+   00f0   f8 50         		LDI  CONTLONG	; carga el valor inmediato en D
+   00f2   b1            		PHI  R1			; carga el valor de D en R1.1
+   00f3                 TIMER2
+   00f3   21            		DEC  R1     	; decrementa R1
+   00f4   91            		GHI  R1     	; carga la parte alta de R1 en D
+   00f5   3a f3         		BNZ  TIMER2   	; salta si D != 0
+   00f7   30 ef         		BR   BACK3		; salto incondicional
+   00f9                 		END
+00af  BACK1         00df  BACK2         00ef  BACK3         00cf  BACK4     
+007b  CONT1BT       00b9  CONT1DOT5BT    0050  CONTLONG      00e0  DELAY1    
+00f0  DELAY2        0009  DLY1          000a  DLY2          00bd  ESCERO    
+0000  INICIO        0013  LOOP          0000  R0            0001  R1        
+0002  R2            0003  R3            0004  R4            0005  R5        
+0006  R6            0007  R7            0008  R8            0009  R9        
+000a  RA            000b  RB            000c  RC            000d  RD        
+000e  RE            000f  RF            0007  RX            001a  SEND      
+00b6  SHIFT         00e3  TIMER1        00f3  TIMER2        00d0  TIMER3    
+00b0  TRANSM        0008  TX            
+

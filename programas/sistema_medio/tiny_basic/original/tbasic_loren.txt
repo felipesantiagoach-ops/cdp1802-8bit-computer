@@ -1,0 +1,50 @@
+NOtes from the Tiny BASIC Web page July 28 2018, Herb Johnson
+http://www.retrotechnology.com/memship/mship_tbasic.html
+
+TMSI Tiny BASIC, fixes by Loren Christiansen and others
+
+Lee Hart distributed a Tiny BASIC with the IDIOT ROM monitor many years ago. It was originally provided by RCA with their UT4 ROM monitor. The TMSI version became available as a digital file in 2010; the 1802 code was rewritten for the A18 cross-assembler; it was poked at by a few people since, as described on this Web page.
+
+In March 2018, Loren Christensen reported fixing, assembling and loading TMSI Tiny BASIC with the IDIOT monitor above it, into RAM for testing and some improvements. Christensen added: "The main changes are; (1) making the SEEKROM block a conditional assembly, (with a monitor ROM up high, the BASIC-from-ROM feature was causing problems), and (2) changing the logic level sense of EF3 and Q to suit our El-Cheapo serial/USB interface." - Loren Christensen
+
+http://www.retrotechnology.com/memship/tb0_christiansen.zip
+
+Here's Loren's fixes to TMSI Tiny BASIC, ASM and LST files. SEEKROM is a routine to look through ROM to find a Tiny BASIC program "source" as part of the ROM above BASIC. Loren, with assists from myself (Herb Johnson) and Lee Hart and Chuck Yakym, developed a simplified SEEKROM to find that BASIC program. The "hooks" in TB to process that program, were already part of TB from TMSI - they used it for "embedded BASIC" 1802 controllers.
+
+Use of TB on the 1802 Membership Card
+July 2018 I've used Loren's version of Tiny BASIC on the 1802 Membership Card, Rev J CPU and Rev J front panel. The front-panel has a TTL and power "port" which mates with various USB/TTL "dongles". Here's the USB dongle I'm using, with an FTDI brand USB/serial chip.
+
+http://www.retrotechnology.com/memship/basic3_ftdi.html
+
+The TBASIC assembly-language settings for EF3 and Q (serial input and output are as below, and AUTORUN is set to execute an embedded program on power-up / reset.
+
+ EFHI    EQU     0       ; 0=active low EF for serial, (0 = +5V MARK,  0V SPACE).
+ QHI     EQU     1       ; 0=active low Q for serial,  (1 =  0V MARK, +5V SPACE).
+ AUTORUN EQU     1       ;  Define a Tiny BASIC Autorun program at $0D00.
+
+Also, check the default baud-rate in the source, especially if TB is running a program from reset. If TB starts without a program, it will auto-baud; in that case start with a CR (return, enter) character. Here's the TB code for baud rate, assuming a 2MHz clock:
+
+*; SET DEFAULT BAUD RATE AND HALF/FULL DUPLEX. VALUES SHOWN
+;    ARE FOR A 2 MHZ CLOCK. NUMBERS SHOWN FOR FULL DUPLEX:
+;    ADD 1 FOR HALF DUPLEX.
+                ;   75 BAUD = 0A2H
+                ;  110 BAUD = 06CH
+;    LDI  26H   ;  300 BAUD = 026H , ; original default.
+                ;  600 BAUD = 012H
+     LDI  08H   ; 1200 BAUD = 008H 
+
+Again, these features are for the Rev J front-panel card and Rev J CPU, with 2MHz ceramic oscillator, and a FTDI TTL/USB dongle powering and serializing. The TB ROM is at 0000H, 32K RAM at 8000H. TB is also set up, to echo serial output, onto the LED's (OUT 4). I modified Loren's endless-loop demo program, to just count down from 10 to 0 and stop. Look at the TB source (and TB manual) for how to modify that startup program. Or, set AUTORUN EQU 0 and reassemble, and that program will be ignored.
+
+How do you stop a running BASIC program? Tiny BASIC, (and BASIC3), both have a feature where while running a program, they poll the serial input EF line for activity, (looking for space on the serial input, in case the operator wants to break a program. It's not interrupt-driven, so the program has to be sending when the interpreter chooses to look. - Loren
+
+And above all else: Read The Fine Manuals! for details. Manuals and notes with this Tiny BASIC distribution, include Lee Hart's TB manual; a list of TB keywords and features; some notes from me (Herb) on how to hop between TB and IDIOT.
+
+Serial operation issues
+
+There's a problem, in how TinyBASIC's ROM monitor (UT4, IDIOT, UT20) handles 7-bit serial and "parity". These old RCA programs, use "7 bits Mark parity" and so do confusing things with the 8th "parity" bit. So, I had to set the Windows Hyperterminal communications program for "8 bits no parity 1 stop" and also change "settings" under "ASCII setup" to "force incoming data to 7 bit ASCII". Careful and painful oscilloscope work, showed me that IDIOT/UT4/TinyBASIC will "produce" ASCII characters with 7 bits and "mark" parity for the 8th bit, which looks like ordinary 8-bit ASCII. But they "echo" 7 or 8-bit characters with bit 8 "on" and so those look like old-school IBM PC graphics characters. So you need to set your comm program for 8-bit no-parity ASCII *and* ignore the 8th bit on recieve, to avoid this problem. Sorry I did not see this sooner - Herb
+
+Loren pointed out to me, details of serial operation and features of the UT20 ROM monitor, are in this extract of a MPM-216 RCA manual.
+
+http://www.retrotechnology.com/memship/UT20_mpm_216a.pdf
+ 
+Another serial problem is tuning the 1802 M/S Card clock. The M/S card has a variable clock, set with a trimpot (read your M/S Card manual). If the trimpot is just a little bit off the maximum clock rate, and TB's IDIOT monitor doesn't auto-baud on start; then your serial input and output actual baud rate may be a little "off". If you auto-baud first, IDIOT will reset the baud rate (read the IDIOT manual). The crudest thing you can do, is run a constant BASIC "print" program, and tweak the trimpot in real-time until your terminal displays the right characters! (shudder). - Herb

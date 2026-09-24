@@ -1,0 +1,33 @@
+%% este código define el estilo para el lenguaje assembler del CDP1802
+
+\lstdefinelanguage{CDP1802}{
+    morekeywords=[1]{LDN, LDA, LDX, LDXA, LDI, STR, STXD,
+        INC, DEC, IRX, GLO, PLO, GHI, PHI,
+        OR, ORI, XOR, XRI, AND, ANI, SHR, SHCR, RSHR, SHL, SHLC, RSHL,
+        ADD, ADI, ADC, ADCI, SD, SDI, SDB, SDBI, SM, SMI, SMB, SMBI,
+        BR, NBR, BZ, BNZ, BDF, BPZ, BGE, BNF, BM, BL, BQ, BNQ, B1, BN1, B2, BN2, B3, BN3, B4, BN4,
+        LBR, NLBR, LBZ, LBNZ, LBDF, LBNF, LBQ, LBNQ,
+        SKP, LSKP, LSZ, LSNZ, LSDF, LSNF, LSQ, LSNQ, LSIE,
+        IDL, NOP, SEP, SEX, SEQ, REQ, SAV, MARK, RET, DIS,
+        OUT1, OUT2, OUT3, OUT4, OUT5, OUT6, OUT7, INP1, INP2, INP3, INP4, INP5, INP6, INP7, OUT, INP},%
+    morekeywords=[2]{r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, ra, rb, rc, rd, re, rf},%
+    morekeywords=[3]{org,def,equ,db,dw,include,dseg,cseg,eseg},%
+    sensitive=false, % keywords are not case-sensitive
+    morecomment=[l]{;}, % l is for line comment
+} %
+
+\definecolor{MyDarkGreen}{rgb}{0.0,0.4,0.0} % This is the color used for comments
+
+\lstset{language=CDP1802,
+        frame=single, % Single frame around code
+        basicstyle=\small\ttfamily, % Use small true type font
+        keywordstyle=\color{Blue}\textbf, % Instructions in blue, bold
+        keywordstyle=[2]\color{Orange}, % Registers in orange
+        keywordstyle=[3]\color{Purple}, % Directives in purple
+        commentstyle=\usefont{T1}{pcr}{m}{sl}\color{MyDarkGreen}\small,
+        tabsize=4, % 4 spaces per tab
+        numbers=left, % Line numbers on left
+        firstnumber=1, % Line numbers start with line 1
+        numberstyle=\tiny\color{Blue}, % Line numbers are blue and small
+        stepnumber=5 % Line numbers go in steps of 5
+        }

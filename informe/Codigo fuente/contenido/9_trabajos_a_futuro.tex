@@ -1,0 +1,58 @@
+\chapter{Trabajos a futuro}
+\label{C:trabajos_a_futuro}
+
+En este capítulo presentaremos una lista de actividades que pueden ser desarrolladas a partir de las bases presentadas en este trabajo. Las actividades propuestas buscan ser alcanzables con un nivel medio de dificultad considerándose como punto de partida las herramientas teórico-prácticas presentadas.
+
+\section{Construcción de sistema final}
+Se considera que el primer paso lógico a seguir, luego de lo presentado, es la construcción del sistema final. La construcción del circuito puede proveer información útil, verificando los esquemas planteados o identificando fallas del mismo. En dicha construcción se deben realizar pruebas de alimentación, comunicación entre circuitos integrados, coordinación en instrucciones simples, entre otras pruebas.
+
+
+\section{Programas de prueba}
+Una vez construido el sistema final, este puede ser puesto a prueba con los programas diseñados para el sistema medio y mínimo, sin embargo, estos no explotarían el potencial del circuito presentado en el sistema final. Es por ello que se requiere el diseño de programas de prueba que en principio serán simples para verificar el funcionamiento del circuito y luego podrán ser modificados para realizar tareas más complejas. 
+
+\subsection{Coordinación de interfaz entrada-salida}
+El esquema presentado en la figura~\ref{F:EsqSF11} presenta una interfaz de entrada-salida basada en el circuito integrado 82C55. Para el correcto funcionamiento de la interfaz, se debe diseñar un software capaz de controlar los puertos disponibles en el chip. Este software debería ser uno de los primeros en probarse en el sistema final, ya que sirve para comunicarse con gran parte del resto del circuito. 
+
+\subsection{Comunicación I2C}
+El circuito final cuenta con circuitos integrados que funcionan a través de la comunicación I2C. Para lograr un funcionamiento óptimo del circuito, es indispensable el planteamiento de un software que permita enviar y recibir instrucciones a estos integrados. 
+
+\subsection{Conversión Analógico-Digital}
+Una vez diseñado el sistema de comunicación I2C, se puede plantear un software que permita controlar el sistema de conversión A/D. Para ello debe poder realizar la configuración de los niveles de tensión asociados a la lectura de cada uno de los canales disponibles, así como también realizar la lectura de un canal deseado. 
+
+\subsection{Rutina de cambio en el mapa de memoria}
+Para desbloquear un mayor potencial en el funcionamiento del sistema final, se debe plantear un programa de booteo que permita transmitir la memoria de programa a la memoria RAM y luego realice el cambio en el mapa de memoria poniendo en la parte baja del mismo (0000h a 7FFFh) otra memoria RAM, permitiendo almacenar mayor volumen de información en ejecución. 
+
+\subsection{Escritura de memoria SDcard}
+Aprovechando la rutina planteada en la sección \ref{C:esqSPI}, diseñar un programa capaz de escribir en una memoria del tipo SDcard. A estas memorias se puede acceder mediante un protocolo SPI, aun así debe ser analizado el funcionamiento específico del grabado en memorias SPI, para lograr modificar la rutina de comunicación SPI y lograr un sistema de escritura satisfactorio. 
+
+
+
+\subsection{Copia de memoria}
+Una vez que los sistemas de escritura en memoria, tanto los de comunicación I2C, como los de comunicación SPI, funcionen correctamente, se puede desarrollar un software capaz de guardar el contenido de una sección o la totalidad del mapa de memoria en estas memorias no volátiles. 
+
+\section{Rediseño de circuito}
+Una vez probado y verificado el sistema final, puede ser rediseñado con el fin de optimizar en algún aspecto su funcionamiento. En esta sección presentamos algunas propuestas.
+
+\subsection{Rediseño de placa PCB}
+En caso de que se desee replicar el sistema final, manteniendo su topología fundamental, puede establecerse un nuevo layout que reduzca la distancia entre componentes y el número de puentes. Dado el caso, puede analizarse el uso de GALs o PALs para reemplazar las compuertas lógicas y simplificar la disposición del circuito. 
+
+\subsection{Conversión Digital-Analógico}
+Para dotar de aún más herramientas al sistema, se puede plantear la incorporación de un circuito de conversión digital-analógico. Esto permitiría a la computadora interactuar con mayor número de periféricos.
+
+\subsection{Separación galvánica de entradas analógicas}
+Para un mejor desempeño de la etapa de conversión analógico-digital (o digital-analógico) puede plantearse la separación galvánica de estas para reducir interferencias que puedan existir.  
+
+\subsection{Traslado del circuito SPI del mapa de memoria principal al mapa de memoria de entrada y salida del CDP1802}
+En el diseño realizado del sistema final, el circuito SPI interrumpe la continuidad de la RAM en el mapa de memoria, utilizando 400h direcciones de memoria; sin embargo, solo necesita una dirección.
+
+Como alternativa a esto, se propone modificar el circuito SPI para que el mismo esté en el mapa de memoria de dispositivos de entrada y salida del CDP1802, esto liberaría el espacio de memoria del mapa principal actualmente utilizado por el circuito SPI y, además, se utilizarían las instrucciones INP y OUT para el proceso de lectura y escritura de datos. Es necesario recordar que el 82C55 utiliza las direcciones 4, 5, 6 y 7 de los pines N0, N1 y N2, por lo tanto, quedan libres las direcciones 1, 2 y 3 que pueden utilizarse.
+
+Aunque pareciera una complicación, realizar esta modificación simplificaría el decodificador del mapa de memoria, lo cual debe tenerse en cuenta a la hora de comparar las dos alternativas.
+
+\section{Desarrollo de controlador lógico programable}
+Combinando algunas de las soluciones propuestas tanto en software como en hardware, se puede plantear el uso del sistema como PLC. Para poder avanzar en el desarrollo de este sistema se debe contar con un hardware probado y libre de errores a fin de enfocarse en la tarea de desarrollo de software que puede resultar compleja. 
+
+\section{Topología con dos microprocesadores}
+A modo didáctico puede ser planteado un nuevo sistema que presente dos microprocesadores, esto permitiría expandir el mapa de memoria, realizar tareas en paralelo, entre otras cosas. El planteamiento del software debería contemplar un proceso de comunicación entre ambos microprocesadores. Las combinaciones y utilidades que pueda presentar son diversas y deben ser desarrolladas con detenimiento. Sin embargo, presentamos una propuesta de funcionamiento.
+
+Establecer un microprocesador maestro el cual delega tareas preestablecidas al segundo microprocesador; la comunicación entre ellos se realizaría mediante los flags EF1-EF4. Para la interacción entre los buses de datos se utilizará un sistema basado en un latch de 8 líneas, que disponga de un flag indicador de disponibilidad de dato. 

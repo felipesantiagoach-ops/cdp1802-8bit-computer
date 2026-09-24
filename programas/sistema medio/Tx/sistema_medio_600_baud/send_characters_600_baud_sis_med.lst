@@ -1,0 +1,80 @@
+                        ; aclarar que valor darle al contador de delay para qué baudrate
+                        ; aclarar que registros son modificados por esta rutina
+                        ; CPU Type:
+                        		CPU 1802
+                        
+                        ; Labels:
+                        
+                        ; Register Definitions:
+                        
+   000a                 RA		EQU 10
+   000b                 RB		EQU 11
+   000c                 RC		EQU 12
+                        
+                        ; Name Definitions
+   000a                 CONTB	EQU RA
+   000b                 DATO	EQU RB
+   000c                 CONTD 	EQU RC
+                        
+   008a                 BITDLY	EQU 138D ; bit time delay counter value (600 BAUD a 4 MHz crystal)
+                        
+                        ; Origin set to 00000H
+   0000                 		ORG  00000H
+   0000                 LOOP	
+   0000   f8 55         		LDI 85D
+   0002   ab            		PLO DATO		;carga el caracter U en DATO
+                        ;----------------------------transmito bit de inicio----------------------------------			
+   0003   7a            		REQ				; Q=0 start bit
+                        ; bit time delay
+   0004   f8 8a         		LDI  BITDLY		; carga el valor inmediato en D		2-Byte	2-Machine Cycles	1 time
+   0006   ac            		PLO  CONTD		; carga el valor de D en R1.0		1-Byte	2-Machine Cycles	1 time
+   0007                 DEL1
+   0007   2c            		DEC  CONTD     	; decrementa R1						1-Byte	2-Machine Cycles	R1 times
+   0008   8c            		GLO  CONTD     	; carga la parte alta de R1.0 en D	1-Byte	2-Machine Cycles	R1 times
+   0009   3a 07         		BNZ  DEL1   	; salta si D != 0					2-Byte	2-Machine Cycles	R1 times
+                        ;-------------------------aquí termina el bit de inicio-------------------------------
+                        ;-----------------aquí comienza a transmitirse los bits de datos----------------------
+   000b   f8 08         		LDI 08D			; cargo el contador de bits a enviar 
+   000d   aa            		PLO CONTB
+   000e                 TDAT
+   000e   8b            		GLO DATO		; carga dato en D
+   000f   f6            		SHR				; shift right D (carga en DF el LSB de DATO)
+   0010   ab            		PLO DATO		; guarda el valor de DATOS desplazado de nuevo en su registro correspondiente
+   0011   3b 15         		BNF	ESCERO		; salta si DF = 0
+   0013   7b            		SEQ				; Q=1
+   0014   38            		SKP				; saltea la siguiente instrucción
+   0015   7a            ESCERO	REQ				; Q=0
+                        ; bit time delay
+   0016   f8 8a         		LDI  BITDLY		; carga el valor inmediato en D		2-Byte	2-Machine Cycles	1 time
+   0018   ac            		PLO  CONTD		; carga el valor de D en R1.0		1-Byte	2-Machine Cycles	1 time
+   0019                 DEL2
+   0019   2c            		DEC  CONTD     	; decrementa R1						1-Byte	2-Machine Cycles	R1 times
+   001a   8c            		GLO  CONTD     	; carga la parte alta de R1.0 en D	1-Byte	2-Machine Cycles	R1 times
+   001b   3a 19         		BNZ  DEL2   	; salta si D != 0					2-Byte	2-Machine Cycles	R1 times
+                        ;-------------------------fin de transmisión de un bit-----------------------------------------
+   001d   2a            		DEC CONTB		; decremento el contador de bits enviados
+   001e   8a            		GLO CONTB		; cargo valor en D
+   001f   3a 0e         		BNZ TDAT		; continuo con el siguiente bit si todavía no llegó a cero
+                        ;-------------------------bit de parada---------------------------------------------
+   0021   7b            		SEQ				; Q=1
+                        ; bit time delay
+   0022   f8 8a         		LDI  BITDLY		; carga el valor inmediato en D		2-Byte	2-Machine Cycles	1 time
+   0024   ac            		PLO  CONTD		; carga el valor de D en R1.0		1-Byte	2-Machine Cycles	1 time
+   0025                 DEL3
+   0025   2c            		DEC  CONTD     	; decrementa R1						1-Byte	2-Machine Cycles	R1 times
+   0026   8c            		GLO  CONTD     	; carga la parte alta de R1.0 en D	1-Byte	2-Machine Cycles	R1 times
+   0027   3a 25         		BNZ  DEL3   	; salta si D != 0					2-Byte	2-Machine Cycles	R1 times
+                        ; bit time delay
+   0029   f8 8a         		LDI  BITDLY		; carga el valor inmediato en D		2-Byte	2-Machine Cycles	1 time
+   002b   ac            		PLO  CONTD		; carga el valor de D en R1.0		1-Byte	2-Machine Cycles	1 time
+   002c                 DEL4
+   002c   2c            		DEC  CONTD     	; decrementa R1						1-Byte	2-Machine Cycles	R1 times
+   002d   8c            		GLO  CONTD     	; carga la parte alta de R1.0 en D	1-Byte	2-Machine Cycles	R1 times
+   002e   3a 2c         		BNZ  DEL4   	; salta si D != 0					2-Byte	2-Machine Cycles	R1 times
+   0030   30 00         		BR LOOP
+   0032                 		END
+008a  BITDLY        000a  CONTB         000c  CONTD         000b  DATO      
+0007  DEL1          0019  DEL2          0025  DEL3          002c  DEL4      
+0015  ESCERO        0000  LOOP          000a  RA            000b  RB        
+000c  RC            000e  TDAT          
+

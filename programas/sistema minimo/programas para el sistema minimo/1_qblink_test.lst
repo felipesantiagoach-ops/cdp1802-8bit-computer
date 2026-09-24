@@ -1,0 +1,46 @@
+                        ; Origin set to 00000H, EOF = 0000DH
+   0000                 		ORG  00000H
+                        
+                        ; CPU Type:
+                        		CPU 1802
+                        
+                        ; Labels:
+                        
+                        ; Register Definitions:
+   0000                 R0		EQU 0
+   0001                 R1		EQU 1
+   0002                 R2		EQU 2
+   0003                 R3		EQU 3
+   0004                 R4		EQU 4
+   0005                 R5		EQU 5
+   0006                 R6		EQU 6
+   0007                 R7		EQU 7
+   0008                 R8		EQU 8
+   0009                 R9		EQU 9
+   000a                 RA		EQU 10
+   000b                 RB		EQU 11
+   000c                 RC		EQU 12
+   000d                 RD		EQU 13
+   000e                 RE		EQU 14
+   000f                 RF		EQU 15
+                        
+                        ; Start code segment
+   0000                 INICIO
+   0000   7a            		REQ			; reset Q
+   0001                 START
+   0001   f8 10         		LDI  010H 	; al parecer el cero va adelante para indicar que es hexadecimal
+   0003   b1            		PHI  R1		; carga el valor de D a R1.1
+   0004                 LOOP
+   0004   21            		DEC  R1		; decrementa R1.1
+   0005   91            		GHI  R1     ; carga R1.1 en D
+   0006   3a 04         		BNZ  LOOP	; salta si D es 0
+   0008   31 00         		BQ   INICIO	; salta si Q == 1 (para que Q conmute)
+   000a   7b            		SEQ 		; set Q
+   000b   30 01         		BR   START	; salto incondicional
+   000d                 		END
+0000  INICIO        0004  LOOP          0000  R0            0001  R1        
+0002  R2            0003  R3            0004  R4            0005  R5        
+0006  R6            0007  R7            0008  R8            0009  R9        
+000a  RA            000b  RB            000c  RC            000d  RD        
+000e  RE            000f  RF            0001  START         
+

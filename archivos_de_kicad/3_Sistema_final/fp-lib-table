@@ -1,0 +1,5 @@
+(fp_lib_table
+  (lib (name "Library_fusible")(type "KiCad")(uri "C:/Users/uriel/Documents/KiCad/6.0/footprints/Library_fusible.pretty")(options "")(descr ""))
+  (lib (name "Library")(type "KiCad")(uri "C:/Users/uriel/Documents/KiCad/6.0/footprints/trafo.pretty/Library.pretty")(options "")(descr ""))
+  (lib (name "trafo")(type "KiCad")(uri "C:/Users/uriel/Documents/KiCad/6.0/footprints/trafo.pretty")(options "")(descr ""))
+)
