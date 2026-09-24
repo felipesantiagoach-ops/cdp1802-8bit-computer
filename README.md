@@ -4,12 +4,12 @@ Design, construction and testing of an 8-bit microcomputer built around the **RC
 
 Final engineering project for *Proyecto y Diseño Electrónico* (ET546), Electronic Engineering, **Universidad Nacional de Misiones**, Argentina (November 2022).
 
-📄 **[Read the full report (PDF, Spanish)](informe.pdf)**: 166 pages covering theory, schematics, PCBs, assembly code and test results.  
-🖼️ **[Project poster](poster.pdf)**
+📄 **[Read the full report (PDF, Spanish)](informe/ProyectoFinal.pdf)**: 166 pages covering theory, schematics, PCBs, assembly code and test results.  
+🖼️ **[Project poster](Poster_PyD_2022_Grupo_A.pdf)**
 
 <p align="center">
-  <img src="informe/imagenes/foto_sistema_med.jpg" width="48%" alt="Medium system, assembled">
-  <img src="informe/imagenes/sistema_final_3D.png" width="48%" alt="Final system, 3D render of the PCB">
+  <img src="informe/Codigo%20fuente/imagenes/foto_sistema_med.jpg" width="48%" alt="Medium system, assembled">
+  <img src="informe/Codigo%20fuente/imagenes/sistema_final_3D.png" width="48%" alt="Final system, 3D render of the PCB">
 </p>
 
 ---
@@ -66,15 +66,16 @@ The report also outlines future work, including I/O drivers, SD-card support, a 
 ## Repository structure
 
 ```
-informe.pdf             Compiled report (Spanish)
-poster.pdf              Project poster
-informe/                LaTeX source of the report (chapters, appendices, bibliography, figures)
-kicad/                  KiCad projects: schematics, PCBs, BOMs and exports
-  1_sistema_minimo/
-  2_sistema_medio/
-  3_sistema_final/      Full system plus separate sub-projects (ADC conditioning, SPI)
-programas/              CDP1802 assembly programs (.asm), assembled output (.hex, .lst) and build scripts
-simulaciones_spi/       Proteus simulations of the hardware SPI circuit
+Poster_PyD_2022_Grupo_A.pdf   Project poster
+informe/
+  ProyectoFinal.pdf           Compiled report (Spanish)
+  Codigo fuente/              LaTeX source (chapters, appendices, bibliography, figures)
+archivos_de_kicad/            KiCad projects: schematics, PCBs, BOMs and exports
+  1_Sistema_minimo/
+  2_Sistema_medio/
+  3_Sistema_final/            Full system plus separate sub-projects (ADC conditioning, SPI)
+programas/                    CDP1802 assembly programs (.asm), assembled output (.hex, .lst) and build scripts
+decodificador SPI/            Proteus simulations of the hardware SPI circuit
 ```
 
 The KiCad projects were made with KiCad 6 (the minimal system also includes the original KiCad 5 files).  
@@ -84,7 +85,7 @@ Programs are assembled with the [A18 cross-assembler](https://www.retrotechnolog
 Requires a LaTeX distribution (MiKTeX or TeX Live) with `biber`.
 
 ```bash
-cd informe
+cd "informe/Codigo fuente"
 pdflatex proyecto
 biber proyecto
 pdflatex proyecto
